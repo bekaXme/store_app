@@ -1,5 +1,5 @@
 class AuthModel {
-  String fullName;
+  String? fullName;
   String email;
   String? password; // make it nullable
   String? token;
@@ -14,8 +14,10 @@ class AuthModel {
   factory AuthModel.fromJson(Map<String, dynamic> json) => AuthModel(
     fullName: json['fullName'] ?? "",
     email: json['email'] ?? "",
-    password: json['password'], // may be null (safe)
-    token: json['token'],
+    password: json['password'],
+    token:
+        json['accessToken'] ??
+        json['token'],
   );
 
   Map<String, dynamic> toJson() => {

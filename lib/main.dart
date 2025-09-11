@@ -4,15 +4,19 @@ import 'package:provider/provider.dart';
 import 'package:store_app/core/services/client.dart';
 import 'package:store_app/data/repositories/auth/auth_repository.dart';
 import 'core/routing/routers.dart' as AppRouter;
+import 'features/auth/managers/auth_view_model.dart';
 
 main() {
   runApp(
     MultiProvider(
       providers: [
         Provider(create: (_) => AuthRepository(ApiClient())),
+        ChangeNotifierProvider(
+          create: (context) => AuthVM(context.read<AuthRepository>()),
+        ),
       ],
       child: const StoreApp(),
-    )
+    ),
   );
 }
 

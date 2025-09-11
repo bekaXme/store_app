@@ -33,12 +33,12 @@ class AuthVM extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> fetchLogin(String email, String password) async {
+  Future<void> fetchLogin(AuthModel authModel) async {
     isLoading = true;
     error = null;
     notifyListeners();
 
-    final result = await _authRepository.login(email, password);
+    final result = await _authRepository.login(authModel.email, authModel.password!);
     result.fold(
       onError: (err) {
         error = err.toString();
