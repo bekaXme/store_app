@@ -1,7 +1,7 @@
 class AuthModel {
   String? fullName;
   String email;
-  String? password; // make it nullable
+  String? password;
   String? token;
 
   AuthModel({
@@ -23,6 +23,6 @@ class AuthModel {
   Map<String, dynamic> toJson() => {
     'fullName': fullName,
     'email': email,
-    if (password != null) 'password': password, // only send when available
+    if (password != null) 'password': password,
   };
 }

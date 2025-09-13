@@ -7,7 +7,6 @@ class AuthVM extends ChangeNotifier {
   bool isLoading = false;
   String? error;
   AuthModel? user;
-
   AuthVM(this._authRepository);
 
   Future<void> fetchRegister(AuthModel newUser) async {
@@ -22,7 +21,7 @@ class AuthVM extends ChangeNotifier {
       },
       onSuccess: (data) {
         try {
-          user = AuthModel.fromJson(data as Map<String, dynamic>); // assign to field, not local var
+          user = AuthModel.fromJson(data as Map<String, dynamic>);
         } catch (e) {
           error = "Parsing error: $e";
         }
