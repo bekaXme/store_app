@@ -37,17 +37,13 @@ class AuthVM extends ChangeNotifier {
     error = null;
     notifyListeners();
 
-    final result = await _authRepository.login(authModel.email, authModel.password!);
+    final result = await _authRepository.login(authModel.login, authModel.password!);
     result.fold(
       onError: (err) {
         error = err.toString();
       },
       onSuccess: (data) {
-        try {
-          user = AuthModel.fromJson(data as Map<String, dynamic>); // same parsing fix
-        } catch (e) {
-          error = "Parsing error: $e";
-        }
+        user = data;
       },
     );
 
