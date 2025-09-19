@@ -3,18 +3,17 @@ import 'package:store_app/core/result/result.dart';
 import '../interceptor/auth_interceptor.dart';
 
 class ApiClient {
-  final Dio _dio;
+  final AuthInterceptor interceptor;
 
-  ApiClient()
-    : _dio = Dio(
-        BaseOptions(
-          baseUrl: 'http://192.168.9.167:8888/api/v1',
-          connectTimeout: const Duration(seconds: 10),
-          receiveTimeout: const Duration(seconds: 10),
-        ),
-      ) {
-    // _dio.interceptors.add(AuthInterCeptor());
+  ApiClient({required this.interceptor}) {
+    _dio = Dio(
+      BaseOptions(
+        baseUrl: "http://192.168.8.69:8888/api/v1",
+      ),
+    )..interceptors.add(interceptor);
   }
+
+  late final Dio _dio;
 
   Future<Result<T>> get<T>(
     String path, {

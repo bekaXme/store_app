@@ -10,22 +10,24 @@ class AuthRepository {
   Future<Result<AuthModel>> register(AuthModel user) async {
     final result = await _apiClient!.post<Map<String, dynamic>>(
       '/auth/register',
-      data: user.toJson(),
+      data: user.toRegisterJson(),
     );
-    return result.fold(
-      onSuccess: (data) => Result.success(AuthModel.fromJson(data)),
-      onError: (err) => Result.error(err),
-    );
+    if (result.isSuccess) {
+      return Result.success(AuthModel.fromJson(result.data!));
+    } else {
+      return Result.error(result.error!);
+    }
   }
 
   Future<Result<AuthModel>> login(String email, String password) async {
     final result = await _apiClient!.post<Map<String, dynamic>>(
       '/auth/login',
       data: {
-        'email': email,
+        'login': email,
         'password': password,
       },
     );
+
     return result.fold(
       onSuccess: (data) => Result.success(AuthModel.fromJson(data)),
       onError: (err) => Result.error(err),
@@ -38,7 +40,7 @@ class AuthRepository {
       data: {'email': email},
     );
     return result.fold(
-      onSuccess: (_) => Result.success(true), // only need success bool
+      onSuccess: (_) => Result.success(true),
       onError: (err) => Result.error(err),
     );
   }
@@ -57,7 +59,8 @@ class AuthRepository {
     );
   }
 
-  Future<Result<bool>> changePassword(String password, String code, String email) async {
+  Future<Result<bool>> changePassword(
+      String password, String code, String email) async {
     final result = await _apiClient!.post<bool>(
       '/auth/reset-password/reset',
       data: {

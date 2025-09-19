@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../../../data/models/auth/auth_model.dart';
-import '../managers/auth_view_model.dart';
+import '../managers/authlogin_view_model.dart';
 import '../widgets/medi_button_widget.dart';
 import '../widgets/register_widgets.dart';
 
@@ -14,6 +15,7 @@ class RegisterPage extends StatefulWidget {
 }
 
 class _RegisterPageState extends State<RegisterPage> {
+  final storage = FlutterSecureStorage();
   final fullnameController = TextEditingController();
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
@@ -201,7 +203,7 @@ class _RegisterPageState extends State<RegisterPage> {
                           backgroundColor: Colors.green,
                         ),
                       );
-                      context.go("/getStarted");
+                      context.go("/home");
                     }
                   } catch (e) {
                     ScaffoldMessenger.of(context).showSnackBar(
@@ -212,7 +214,8 @@ class _RegisterPageState extends State<RegisterPage> {
                     );
                   }
                 }
-                    : null, // disabled until all valid
+                    : null,
+
                 child: const Text(
                   'Create an Account',
                   style: TextStyle(color: Colors.white),

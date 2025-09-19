@@ -4,17 +4,13 @@ import 'package:provider/provider.dart';
 import 'package:store_app/core/services/client.dart';
 import 'package:store_app/data/repositories/auth/auth_repository.dart';
 import 'core/routing/routers.dart' as AppRouter;
-import 'features/auth/managers/auth_view_model.dart';
+import 'dependencies.dart';
+import 'features/auth/managers/authlogin_view_model.dart';
 
-main() {
+void main() {
   runApp(
     MultiProvider(
-      providers: [
-        Provider(create: (_) => AuthRepository(ApiClient())),
-        ChangeNotifierProvider(
-          create: (context) => AuthVM(context.read<AuthRepository>()),
-        ),
-      ],
+      providers: dependencies,
       child: const StoreApp(),
     ),
   );
@@ -26,12 +22,13 @@ class StoreApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ScreenUtilInit(
-      designSize: Size(375, 812),
+      designSize: const Size(375, 812), // iPhone X reference size
       minTextAdapt: true,
       splitScreenMode: true,
       builder: (context, child) {
         return MaterialApp.router(
           debugShowCheckedModeBanner: false,
+          title: 'My App',
           routerConfig: AppRouter.router,
         );
       },

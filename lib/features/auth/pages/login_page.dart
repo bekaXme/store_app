@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:store_app/features/auth/widgets/register_widgets.dart';
 import '../../../data/models/auth/auth_model.dart';
-import '../managers/auth_view_model.dart';
+import '../managers/authlogin_view_model.dart';
 import '../widgets/medi_button_widget.dart';
 
 class LoginPage extends StatefulWidget {
@@ -14,6 +15,7 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
+  final storage = FlutterSecureStorage();
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
 
@@ -144,15 +146,17 @@ class _LoginPageState extends State<LoginPage> {
                       ),
                     );
                     if (authVM.error != null) {
+                      print(authVM.error);
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
                           content: Text("Login failed: ${authVM.error}"),
                           backgroundColor: Colors.red,
                         ),
                       );
-                    } else if (authVM.user != null) {
-                      print(authVM.user.toString());
-                      context.go('/onboarding_main');
+                    } else if (authVM.user != null && authVM.user!.token != null) {
+                      print("✅ Token: ${authVM.user!.token}");
+                      await storage.write(key: 'token', value: authVM.user!.token);
+                      context.go('/home');
                     }
                   } catch (e) {
                     print(e);
