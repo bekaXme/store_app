@@ -1,5 +1,5 @@
-import '../../data/models/home/category_model.dart';
-import '../../data/models/home/product_model.dart';
+import '../../../data/models/home/category_model.dart';
+import '../../../data/models/home/product_model.dart';
 import 'package:equatable/equatable.dart';
 
 enum HomeStatus { initial, loading, success, failure }

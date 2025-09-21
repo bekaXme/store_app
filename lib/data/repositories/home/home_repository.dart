@@ -5,12 +5,12 @@ import '../../models/home/category_model.dart';
 import '../../models/home/product_model.dart';
 
 class HomeRepository {
-  final ApiClient client;
+  final ApiClient _client;
 
-  HomeRepository(this.client);
+  HomeRepository({required ApiClient client}) : _client = client;
 
   Future<Result<List<CategoryModel>>> getCategories() async {
-    final result = await client.get<List<dynamic>>('/categories/list');
+    final result = await _client.get<List<dynamic>>('/categories/list');
     return result.fold(
       onSuccess: (data) {
         final categories = data.map((e) => CategoryModel.fromJson(e)).toList();
@@ -21,7 +21,7 @@ class HomeRepository {
   }
 
   Future<Result<List<ProductModel>>> getProducts() async {
-    final result = await client.get<List<dynamic>>('/products/list');
+    final result = await _client.get<List<dynamic>>('/products/list');
     return result.fold(
       onSuccess: (data) {
         final products = data.map((e) => ProductModel.fromJson(e)).toList();

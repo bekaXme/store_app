@@ -1,15 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:hive/hive.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:provider/provider.dart';
-import 'package:store_app/core/services/client.dart';
-import 'package:store_app/data/repositories/auth/auth_repository.dart';
 import 'core/routing/routers.dart' as AppRouter;
 import 'dependencies.dart';
-import 'features/auth/managers/authlogin_view_model.dart';
 
-void main() {
+void main() async{
+  WidgetsFlutterBinding.ensureInitialized();
+  await Hive.initFlutter();
+  final box = Hive.openBox('savedProducts');
   runApp(
-    MultiProvider(
+    MultiRepositoryProvider(
       providers: dependencies,
       child: const StoreApp(),
     ),
