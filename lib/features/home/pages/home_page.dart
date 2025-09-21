@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../cubit/home/home_cubit.dart';
 import '../../cubit/home/home_state.dart';
@@ -10,7 +11,14 @@ class HomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Discover")),
+      appBar: AppBar(
+        title: const Text("Discover"),
+        actions: [
+          IconButton(onPressed: () {
+            context.go('/notifications');
+          }, icon: Icon(Icons.notifications)),
+        ],
+      ),
       body: BlocBuilder<HomeCubit, HomeState>(
         builder: (context, state) {
           if (state.status == HomeStatus.loading) {
@@ -22,11 +30,12 @@ class HomePage extends StatelessWidget {
           if (state.status == HomeStatus.success) {
             return ListView(
               children: [
-                /// Categories
                 Padding(
                   padding: const EdgeInsets.all(8.0),
-                  child: Text("Categories",
-                      style: Theme.of(context).textTheme.titleLarge),
+                  child: Text(
+                    "Categories",
+                    style: Theme.of(context).textTheme.titleLarge,
+                  ),
                 ),
                 SizedBox(
                   height: 120,
@@ -45,8 +54,10 @@ class HomePage extends StatelessWidget {
                               radius: 35,
                             ),
                             const SizedBox(height: 5),
-                            Text(category.name,
-                                overflow: TextOverflow.ellipsis),
+                            Text(
+                              category.name,
+                              overflow: TextOverflow.ellipsis,
+                            ),
                           ],
                         ),
                       );
@@ -57,8 +68,10 @@ class HomePage extends StatelessWidget {
                 /// Products
                 Padding(
                   padding: const EdgeInsets.all(8.0),
-                  child: Text("Products",
-                      style: Theme.of(context).textTheme.titleLarge),
+                  child: Text(
+                    "Products",
+                    style: Theme.of(context).textTheme.titleLarge,
+                  ),
                 ),
                 GridView.builder(
                   shrinkWrap: true,
@@ -85,16 +98,19 @@ class HomePage extends StatelessWidget {
                           ),
                           Padding(
                             padding: const EdgeInsets.all(8.0),
-                            child: Text(product.name,
-                                style: const TextStyle(
-                                    fontWeight: FontWeight.bold)),
+                            child: Text(
+                              product.name,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
                           ),
                           Text("\$${product.price}"),
                         ],
                       ),
                     );
                   },
-                )
+                ),
               ],
             );
           }
