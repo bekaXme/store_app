@@ -1,17 +1,37 @@
-import 'package:flutter/foundation.dart';
-import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:equatable/equatable.dart';
+
 import '../../../data/models/home/saved_product_model.dart';
-part 'saved_products_state.freezed.dart';
 
-enum Status { idle, loading, success, error }
+enum SavedProductsStatus { initial, loading, success, failure }
 
-@freezed
-abstract class SavedState with _$SavedState {
-  const factory SavedState({
-    required Status status,
-    required String? errorSavedMessage,
-    required List<SavedProductsModel> savedProducts,
-  }) = _SavedState;
+class SavedProductsState extends Equatable {
+  final SavedProductsStatus status;
+  final List<SavedProductsModel> savedProducts;
+  final String? errorMessage;
 
-  factory SavedState.initial()=>SavedState(status: Status.idle, errorSavedMessage: null, savedProducts: []);
+  const SavedProductsState({
+    required this.status,
+    required this.savedProducts,
+    this.errorMessage,
+  });
+
+  factory SavedProductsState.initial() => const SavedProductsState(
+    status: SavedProductsStatus.initial,
+    savedProducts: [],
+  );
+
+  SavedProductsState copyWith({
+    SavedProductsStatus? status,
+    List<SavedProductsModel>? savedProducts,
+    String? errorMessage,
+  }) {
+    return SavedProductsState(
+      status: status ?? this.status,
+      savedProducts: savedProducts ?? this.savedProducts,
+      errorMessage: errorMessage ?? this.errorMessage,
+    );
+  }
+
+  @override
+  List<Object?> get props => [status, savedProducts, errorMessage];
 }

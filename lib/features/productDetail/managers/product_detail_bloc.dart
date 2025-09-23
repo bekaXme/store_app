@@ -19,20 +19,20 @@ class ProductDetailBloc extends Bloc<ProductDetailEvent, ProductDetailState> {
       GetProductId event,
       Emitter<ProductDetailState> emit,
       ) async {
-    emit(state.copyWith(productStatus: Status.loading, errorProduct: null));
+    emit(state.copyWith(productStatus: SavedProductsStatus.loading, errorProduct: null));
 
     final result = await repository.getProductDetail(event.id);
 
     result.fold(
       onSuccess: (product) {
         emit(state.copyWith(
-          productStatus: Status.success,
+          productStatus: SavedProductsStatus.success,
           product: product,
         ));
       },
       onError: (e) {
         emit(state.copyWith(
-          productStatus: Status.error,
+          productStatus: SavedProductsStatus.failure,
           errorProduct: e.toString(),
         ));
       },

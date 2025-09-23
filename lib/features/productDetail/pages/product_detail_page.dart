@@ -40,7 +40,7 @@ class ProductDetailPage extends StatelessWidget {
         ),
         body: BlocBuilder<ProductDetailBloc, ProductDetailState>(
           builder: (context, state) {
-            if (state.productStatus == Status.loading) {
+            if (state.productStatus == SavedProductsStatus.loading) {
               return const Center(child: CircularProgressIndicator());
             }
             if (state.errorProduct != null) {

@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:store_app/data/models/product_detail/product_model.dart';
-import 'package:store_app/data/models/home/category_model.dart';
-import '../../savedProducts/bloc/saved_product_cubit.dart';
+import '../../savedProducts/bloc/saved_product_bloc.dart';
+import '../../savedProducts/bloc/saved_products_event.dart';
 import '../../savedProducts/bloc/saved_products_state.dart';
 import '../cubit/home_cubit.dart';
 import '../cubit/home_state.dart';
+import 'package:store_app/data/models/home/category_model.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -23,7 +23,7 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     super.initState();
     context.read<HomeCubit>().loadData();
-    context.read<SavedCubit>().fetchSavedProducts();
+    context.read<SavedProductsBloc>().add(LoadSavedProducts());
   }
 
   @override
@@ -37,9 +37,7 @@ class _HomePageState extends State<HomePage> {
         ),
         actions: [
           IconButton(
-            onPressed: () {
-              context.go('/notifications');
-            },
+            onPressed: () => context.go('/notifications'),
             icon: const Icon(Icons.notifications),
           ),
         ],
@@ -85,6 +83,12 @@ class _HomePageState extends State<HomePage> {
               .where((p) => p.categoryId == selectedCategory)
               .toList();
 
+          if (products.isEmpty) {
+            return Center(
+              child: Image.asset('assets/images/placeholder.png'), // Image 2
+            );
+          }
+
           return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -119,7 +123,7 @@ class _HomePageState extends State<HomePage> {
               ),
               const SizedBox(height: 8),
               Expanded(
-                child: BlocBuilder<SavedCubit, SavedState>(
+                child: BlocBuilder<SavedProductsBloc, SavedProductsState>(
                   builder: (context, savedState) {
                     return GridView.builder(
                       padding: const EdgeInsets.all(12),
@@ -133,14 +137,11 @@ class _HomePageState extends State<HomePage> {
                       itemCount: products.length,
                       itemBuilder: (context, index) {
                         final product = products[index];
-                        final isLiked = savedState.savedProducts.any(
-                              (p) => p.id == product.id,
-                        );
+                        final isLiked = savedState.savedProducts
+                            .any((p) => p.id == int.parse(product.id.toString()));
 
                         return GestureDetector(
-                          onTap: () {
-                            context.go('/product/${product.id}');
-                          },
+                          onTap: () => context.go('/product/${product.id}'),
                           child: Container(
                             decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(12),
@@ -182,9 +183,9 @@ class _HomePageState extends State<HomePage> {
                                             isLiked ? Colors.red : Colors.grey,
                                           ),
                                           onPressed: () {
-                                            context
-                                                .read<SavedCubit>()
-                                                .toggleSave(product.id as int);
+                                            context.read<SavedProductsBloc>().add(
+                                                ToggleSaveProduct(
+                                                    int.parse(product.id.toString())));
                                           },
                                         ),
                                       ),
@@ -204,8 +205,7 @@ class _HomePageState extends State<HomePage> {
                                   ),
                                 ),
                                 Padding(
-                                  padding:
-                                  const EdgeInsets.symmetric(horizontal: 8),
+                                  padding: const EdgeInsets.symmetric(horizontal: 8),
                                   child: Text(
                                     "\$${product.price}",
                                     style: const TextStyle(

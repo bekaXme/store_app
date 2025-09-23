@@ -13,7 +13,7 @@ import 'package:store_app/data/repositories/home/home_repository.dart';
 import 'package:store_app/features/auth/managers/authlogin_view_model.dart';
 import 'data/repositories/savedProducts/saved_products_repository.dart';
 import 'features/productDetail/managers/product_detail_bloc.dart';
-import 'features/savedProducts/bloc/saved_product_cubit.dart';
+import 'features/savedProducts/bloc/saved_product_bloc.dart';
 
 final List<SingleChildWidget> dependencies = [
   Provider(create: (context) => const FlutterSecureStorage()),
@@ -50,9 +50,14 @@ final List<SingleChildWidget> dependencies = [
         ProductDetailRepository(apiClient: context.read<ApiClient>()),
   ),
 
-  BlocProvider<SavedCubit>(
+  RepositoryProvider(
     create: (context) =>
-        SavedCubit(productRepo: context.read<SavedProductsRepository>()),
+        SavedProductsRepository(apiClient: context.read<ApiClient>()),
+  ),
+  BlocProvider(
+    create: (context) => SavedProductsBloc(
+      repository: context.read<SavedProductsRepository>(),
+    ),
   ),
 
   BlocProvider<ProductDetailBloc>(

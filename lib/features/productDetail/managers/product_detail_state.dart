@@ -8,9 +8,9 @@ part 'product_detail_state.freezed.dart';
 @freezed
 abstract class ProductDetailState with _$ProductDetailState {
   const factory ProductDetailState({
-    required Status productStatus,
-    required Status reviewsStatus,
-    required Status statsStatus,
+    required SavedProductsStatus productStatus,
+    required SavedProductsStatus reviewsStatus,
+    required SavedProductsStatus statsStatus,
 
     required String? errorProduct,
     required String? errorReviews,
@@ -21,9 +21,9 @@ abstract class ProductDetailState with _$ProductDetailState {
   }) = _ProductDetailState;
 
   factory ProductDetailState.initial() => ProductDetailState(
-    productStatus: Status.idle,
-    reviewsStatus: Status.idle,
-    statsStatus: Status.idle,
+    productStatus: SavedProductsStatus.initial,
+    reviewsStatus: SavedProductsStatus.initial,
+    statsStatus: SavedProductsStatus.initial,
 
     errorProduct: null,
     errorReviews: null,
