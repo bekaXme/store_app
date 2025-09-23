@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:store_app/data/models/home/product_model.dart';
+import 'package:store_app/data/models/product_detail/product_model.dart';
 import 'package:store_app/data/models/home/category_model.dart';
 import '../../savedProducts/bloc/saved_product_cubit.dart';
 import '../../savedProducts/bloc/saved_products_state.dart';
@@ -23,7 +23,7 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     super.initState();
     context.read<HomeCubit>().loadData();
-    context.read<SavedCubit>().fetchSavedProducts(); // ensure saved products are loaded
+    context.read<SavedCubit>().fetchSavedProducts();
   }
 
   @override
@@ -88,7 +88,6 @@ class _HomePageState extends State<HomePage> {
           return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Category Chips
               SizedBox(
                 height: 50,
                 child: ListView.builder(
@@ -119,8 +118,6 @@ class _HomePageState extends State<HomePage> {
                 ),
               ),
               const SizedBox(height: 8),
-
-              // Products Grid
               Expanded(
                 child: BlocBuilder<SavedCubit, SavedState>(
                   builder: (context, savedState) {
@@ -140,80 +137,85 @@ class _HomePageState extends State<HomePage> {
                               (p) => p.id == product.id,
                         );
 
-                        return Container(
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(12),
-                            color: Colors.white,
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.05),
-                                blurRadius: 5,
-                                offset: const Offset(0, 2),
-                              ),
-                            ],
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Expanded(
-                                child: Stack(
-                                  children: [
-                                    ClipRRect(
-                                      borderRadius: const BorderRadius.only(
-                                        topLeft: Radius.circular(12),
-                                        topRight: Radius.circular(12),
-                                      ),
-                                      child: Image.network(
-                                        product.imageUrl,
-                                        width: double.infinity,
-                                        fit: BoxFit.cover,
-                                      ),
-                                    ),
-                                    Positioned(
-                                      right: 8,
-                                      top: 8,
-                                      child: IconButton(
-                                        icon: Icon(
-                                          isLiked
-                                              ? Icons.favorite
-                                              : Icons.favorite_border,
-                                          color:
-                                          isLiked ? Colors.red : Colors.grey,
+                        return GestureDetector(
+                          onTap: () {
+                            context.go('/product/${product.id}');
+                          },
+                          child: Container(
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(12),
+                              color: Colors.white,
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.05),
+                                  blurRadius: 5,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Expanded(
+                                  child: Stack(
+                                    children: [
+                                      ClipRRect(
+                                        borderRadius: const BorderRadius.only(
+                                          topLeft: Radius.circular(12),
+                                          topRight: Radius.circular(12),
                                         ),
-                                        onPressed: () {
-                                          context
-                                              .read<SavedCubit>()
-                                              .toggleSave(product.id as int);
-                                        },
+                                        child: Image.network(
+                                          product.imageUrl,
+                                          width: double.infinity,
+                                          fit: BoxFit.cover,
+                                        ),
                                       ),
+                                      Positioned(
+                                        right: 8,
+                                        top: 8,
+                                        child: IconButton(
+                                          icon: Icon(
+                                            isLiked
+                                                ? Icons.favorite
+                                                : Icons.favorite_border,
+                                            color:
+                                            isLiked ? Colors.red : Colors.grey,
+                                          ),
+                                          onPressed: () {
+                                            context
+                                                .read<SavedCubit>()
+                                                .toggleSave(product.id as int);
+                                          },
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: Text(
+                                    product.name,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.w700,
+                                      fontSize: 20,
                                     ),
-                                  ],
-                                ),
-                              ),
-                              Padding(
-                                padding: const EdgeInsets.all(8.0),
-                                child: Text(
-                                  product.name,
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.w700,
-                                    fontSize: 20,
                                   ),
                                 ),
-                              ),
-                              Padding(
-                                padding:
-                                const EdgeInsets.symmetric(horizontal: 8),
-                                child: Text(
-                                  "\$${product.price}",
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.bold,
+                                Padding(
+                                  padding:
+                                  const EdgeInsets.symmetric(horizontal: 8),
+                                  child: Text(
+                                    "\$${product.price}",
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                    ),
                                   ),
                                 ),
-                              ),
-                              const SizedBox(height: 8),
-                            ],
+                                const SizedBox(height: 8),
+                              ],
+                            ),
                           ),
                         );
                       },

@@ -2,7 +2,7 @@ import 'package:store_app/core/services/client.dart';
 import 'package:store_app/core/result/result.dart';
 
 import '../../models/home/category_model.dart';
-import '../../models/home/product_model.dart';
+import '../../models/product_detail/product_model.dart';
 
 class HomeRepository {
   final ApiClient _client;

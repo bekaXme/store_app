@@ -13,6 +13,7 @@ import '../../features/auth/pages/get_otp_page.dart';
 import '../../features/auth/pages/new_password_page.dart';
 import '../../features/auth/pages/register_page.dart';
 import '../../features/onboarding/pages/onboarding_main.dart';
+import '../../features/productDetail/pages/product_detail_page.dart';
 
 final GoRouter router = GoRouter(
   initialLocation: '/onboardingBegin',
@@ -36,6 +37,13 @@ final GoRouter router = GoRouter(
     GoRoute(path: '/home', builder: (context, state) => HomePage()),
     GoRoute(path: '/notifications', builder: (context , state) => const NotificationsPage()),
     GoRoute(path: '/savedProducts', builder: (context, state) => const SavedPage()),
+    GoRoute(
+      path: '/product/:id',
+      builder: (context, state) {
+        final id = int.parse(state.pathParameters['id']!);
+        return ProductDetailPage(productId: id);
+      },
+    ),
     ShellRoute(
       builder: (context, state, child) => ChangeNotifierProvider(
         create: (context) => ResetPasswordVM(context.read<AuthRepository>()),

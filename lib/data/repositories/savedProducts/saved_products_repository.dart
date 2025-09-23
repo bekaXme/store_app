@@ -19,7 +19,6 @@ class SavedProductsRepository {
     );
   }
 
-  /// ✅ Like/Unlike product by ID
   Future<Result<void>> toggleSaveProduct(int productId) async {
     final response = await _client.post(
       '/auth/save/$productId',
