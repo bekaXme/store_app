@@ -5,15 +5,17 @@ import 'package:provider/single_child_widget.dart';
 import 'package:store_app/core/interceptor/auth_interceptor.dart';
 import 'package:store_app/core/services/client.dart';
 import 'package:store_app/data/repositories/productItem/product_item_repository.dart';
+import 'package:store_app/data/repositories/search/search_repository.dart';
 import 'package:store_app/features/notifications/managers/notifications_cubit.dart';
 import 'package:store_app/data/repositories/notifications/notifications_repository.dart';
 import 'package:store_app/features/home/cubit/home_cubit.dart';
 import 'package:store_app/data/repositories/auth/auth_repository.dart';
 import 'package:store_app/data/repositories/home/home_repository.dart';
 import 'package:store_app/features/auth/managers/authlogin_view_model.dart';
-import 'data/repositories/savedProducts/saved_products_repository.dart';
-import 'features/productDetail/managers/product_detail_bloc.dart';
-import 'features/savedProducts/bloc/saved_product_bloc.dart';
+import 'package:store_app/features/search_items/managers/search_bloc.dart';
+import '../../data/repositories/savedProducts/saved_products_repository.dart';
+import '../../features/productDetail/managers/product_detail_bloc.dart';
+import '../../features/savedProducts/bloc/saved_product_bloc.dart';
 
 final List<SingleChildWidget> dependencies = [
   Provider(create: (context) => const FlutterSecureStorage()),
@@ -55,9 +57,17 @@ final List<SingleChildWidget> dependencies = [
         SavedProductsRepository(apiClient: context.read<ApiClient>()),
   ),
   BlocProvider(
-    create: (context) => SavedProductsBloc(
-      repository: context.read<SavedProductsRepository>(),
-    ),
+    create: (context) =>
+        SavedProductsBloc(repository: context.read<SavedProductsRepository>()),
+  ),
+
+  RepositoryProvider(
+    create: (context) => SearchRepository(apiClient: context.read<ApiClient>()),
+  ),
+
+  BlocProvider(
+    create: (context) =>
+        SearchBloc(repository: context.read<SearchRepository>()),
   ),
 
   BlocProvider<ProductDetailBloc>(

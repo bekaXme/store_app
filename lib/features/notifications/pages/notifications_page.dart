@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:store_app/features/notifications/managers/notifications_cubit.dart';
@@ -138,10 +139,7 @@ class NotificationsPage extends StatelessWidget {
                           children: [
                             CircleAvatar(
                               backgroundColor: Colors.grey[200],
-                              child: Text(
-                                notification.icon,
-                                style: const TextStyle(fontSize: 18),
-                              ),
+                              child: SvgPicture.network(notification.icon)
                             ),
                             const SizedBox(width: 12),
                             Expanded(

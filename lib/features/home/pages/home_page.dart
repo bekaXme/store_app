@@ -238,7 +238,7 @@ class _HomePageState extends State<HomePage> {
               context.go('/home');
               break;
             case 1:
-              context.go('/search');
+              context.go('/searchPage');
               break;
             case 2:
               context.go('/savedProducts');
@@ -247,7 +247,7 @@ class _HomePageState extends State<HomePage> {
               context.go('/cart');
               break;
             case 4:
-              context.go('/account');
+              context.go('/myAccount');
               break;
           }
         },

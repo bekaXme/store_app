@@ -2,6 +2,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:store_app/data/repositories/savedProducts/saved_products_repository.dart';
+import 'package:store_app/data/repositories/search/search_repository.dart';
+import 'package:store_app/features/account/managers/account_page.dart';
 import 'package:store_app/features/auth/managers/reset_password_view_model.dart';
 import 'package:store_app/features/auth/pages/login_page.dart';
 import 'package:store_app/features/auth/pages/reset_password_page.dart';
@@ -10,6 +12,7 @@ import 'package:store_app/features/notifications/pages/notifications_page.dart';
 import 'package:store_app/features/onboarding/pages/get_started_page.dart';
 import 'package:store_app/features/savedProducts/bloc/saved_product_bloc.dart';
 import 'package:store_app/features/savedProducts/pages/saved_product_page.dart';
+import 'package:store_app/features/search_items/pages/search_page.dart';
 import '../../data/repositories/auth/auth_repository.dart';
 import '../../features/auth/managers/authlogin_view_model.dart';
 import '../../features/auth/pages/get_otp_page.dart';
@@ -53,6 +56,12 @@ final GoRouter router = GoRouter(
         return ProductDetailPage(productId: id);
       },
     ),
+    GoRoute(
+      path: '/searchPage',
+      builder: (context, state) =>
+          SearchPage(repository: context.read<SearchRepository>()),
+    ),
+    GoRoute(path: '/myAccount', builder: (context, state) => MyAccountPage()),
     ShellRoute(
       builder: (context, state, child) => ChangeNotifierProvider(
         create: (context) => ResetPasswordVM(context.read<AuthRepository>()),

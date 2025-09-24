@@ -5,7 +5,7 @@ import 'package:hive/hive.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:provider/provider.dart';
 import 'core/routing/routers.dart' as AppRouter;
-import 'dependencies.dart';
+import 'core/utils/dependencies.dart';
 
 void main() async{
   WidgetsFlutterBinding.ensureInitialized();

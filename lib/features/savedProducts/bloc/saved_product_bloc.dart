@@ -1,5 +1,4 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../../core/result/result.dart';
 import '../../../data/models/home/saved_product_model.dart';
 import '../../../data/repositories/savedProducts/saved_products_repository.dart';
 import 'saved_products_event.dart';
@@ -44,7 +43,6 @@ class SavedProductsBloc extends Bloc<SavedProductsEvent, SavedProductsState> {
         if (isAlreadySaved) {
           currentSaved.removeWhere((p) => p.id == event.productId);
         } else {
-          // Optionally fetch full product data here, placeholder for now
           currentSaved.add(SavedProductsModel(
             id: event.productId,
             categoryId: 0,
