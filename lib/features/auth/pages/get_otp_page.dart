@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:store_app/features/auth/widgets/get_otp_widget.dart';
-
 import '../managers/reset_password_view_model.dart';
+
 
 class OtpPage extends StatefulWidget {
   final String email;
@@ -86,8 +87,8 @@ class _OtpPageState extends State<OtpPage> {
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: List.generate(otpLength, (index) {
                 return SizedBox(
-                  width: 64,
-                  height: 60,
+                  width: 64.w,
+                  height: 60.h,
                   child: TextField(
                     controller: controllers[index],
                     focusNode: focusNodes[index],

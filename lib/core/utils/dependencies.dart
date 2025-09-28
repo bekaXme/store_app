@@ -4,8 +4,12 @@ import 'package:provider/provider.dart';
 import 'package:provider/single_child_widget.dart';
 import 'package:store_app/core/interceptor/auth_interceptor.dart';
 import 'package:store_app/core/services/client.dart';
+import 'package:store_app/data/repositories/cart/cart_repository.dart';
+import 'package:store_app/data/repositories/me/me_repository.dart';
 import 'package:store_app/data/repositories/productItem/product_item_repository.dart';
 import 'package:store_app/data/repositories/search/search_repository.dart';
+import 'package:store_app/features/cart/managers/cart_bloc.dart';
+import 'package:store_app/features/me/managers/me_bloc.dart';
 import 'package:store_app/features/notifications/managers/notifications_cubit.dart';
 import 'package:store_app/data/repositories/notifications/notifications_repository.dart';
 import 'package:store_app/features/home/cubit/home_cubit.dart';
@@ -13,9 +17,11 @@ import 'package:store_app/data/repositories/auth/auth_repository.dart';
 import 'package:store_app/data/repositories/home/home_repository.dart';
 import 'package:store_app/features/auth/managers/authlogin_view_model.dart';
 import 'package:store_app/features/search_items/managers/search_bloc.dart';
-import '../../data/repositories/savedProducts/saved_products_repository.dart';
-import '../../features/productDetail/managers/product_detail_bloc.dart';
-import '../../features/savedProducts/bloc/saved_product_bloc.dart';
+import 'package:store_app/data/repositories/savedProducts/saved_products_repository.dart';
+import 'package:store_app/features/productDetail/managers/product_detail_bloc.dart';
+import 'package:store_app/features/savedProducts/bloc/saved_product_bloc.dart';
+import 'package:store_app/data/repositories/payment/payment_repository.dart'; // Add PaymentRepository
+import 'package:store_app/features/card/managers/card_bloc.dart'; // Add PaymentBloc
 
 final List<SingleChildWidget> dependencies = [
   Provider(create: (context) => const FlutterSecureStorage()),
@@ -52,10 +58,17 @@ final List<SingleChildWidget> dependencies = [
         ProductDetailRepository(apiClient: context.read<ApiClient>()),
   ),
 
+  Provider<CartRepository>(
+    create: (context) => CartRepository(client: context.read<ApiClient>()),
+  ),
+
+  BlocProvider(create: (context) => CartBloc(context.read<CartRepository>())),
+
   RepositoryProvider(
     create: (context) =>
         SavedProductsRepository(apiClient: context.read<ApiClient>()),
   ),
+
   BlocProvider(
     create: (context) =>
         SavedProductsBloc(repository: context.read<SavedProductsRepository>()),
@@ -63,6 +76,14 @@ final List<SingleChildWidget> dependencies = [
 
   RepositoryProvider(
     create: (context) => SearchRepository(apiClient: context.read<ApiClient>()),
+  ),
+
+  RepositoryProvider(
+    create: (context) => MyInfoRepository(client: context.read<ApiClient>()),
+  ),
+
+  BlocProvider(
+    create: (context) => MeBloc(repository: context.read<MyInfoRepository>()),
   ),
 
   BlocProvider(
@@ -82,5 +103,15 @@ final List<SingleChildWidget> dependencies = [
   BlocProvider<NotificationsCubit>(
     create: (context) =>
         NotificationsCubit(context.read<NotificationRepository>())..loadData(),
+  ),
+
+  // Add PaymentRepository and PaymentBloc
+  RepositoryProvider(
+    create: (context) => PaymentRepository(client: context.read<ApiClient>()),
+  ),
+
+  BlocProvider(
+    create: (context) =>
+        PaymentBloc(repository: context.read<PaymentRepository>()),
   ),
 ];

@@ -3,11 +3,16 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:store_app/data/repositories/savedProducts/saved_products_repository.dart';
 import 'package:store_app/data/repositories/search/search_repository.dart';
-import 'package:store_app/features/account/managers/account_page.dart';
+import 'package:store_app/features/account/pages/account_page.dart';
 import 'package:store_app/features/auth/managers/reset_password_view_model.dart';
 import 'package:store_app/features/auth/pages/login_page.dart';
 import 'package:store_app/features/auth/pages/reset_password_page.dart';
+import 'package:store_app/features/card/pages/add_card_page.dart';
+import 'package:store_app/features/card/pages/card_page.dart';
+import 'package:store_app/features/card/pages/payment_methods_page.dart';
+import 'package:store_app/features/cart/pages/cart_page.dart';
 import 'package:store_app/features/home/pages/home_page.dart';
+import 'package:store_app/features/me/pages/me_page.dart';
 import 'package:store_app/features/notifications/pages/notifications_page.dart';
 import 'package:store_app/features/onboarding/pages/get_started_page.dart';
 import 'package:store_app/features/savedProducts/bloc/saved_product_bloc.dart';
@@ -18,6 +23,7 @@ import '../../features/auth/managers/authlogin_view_model.dart';
 import '../../features/auth/pages/get_otp_page.dart';
 import '../../features/auth/pages/new_password_page.dart';
 import '../../features/auth/pages/register_page.dart';
+import '../../features/faq/faq_page.dart';
 import '../../features/onboarding/pages/onboarding_main.dart';
 import '../../features/productDetail/pages/product_detail_page.dart';
 
@@ -56,6 +62,12 @@ final GoRouter router = GoRouter(
         return ProductDetailPage(productId: id);
       },
     ),
+    GoRoute(path: '/my_cart', builder: (context, state) => CartPage()),
+    GoRoute(path: '/cards', builder: (context, state) => PaymentPage()),
+    GoRoute(path: '/addCard', builder: (context, state) => AddCardPage()),
+    GoRoute(path: '/paymentMethods', builder: (context, state) => PaymentMethodPage()),
+    GoRoute(path: '/myAccountPage', builder: (context, state) => MePage()),
+    GoRoute(path: '/faq', builder: (context, state) => FAQPage()),
     GoRoute(
       path: '/searchPage',
       builder: (context, state) =>

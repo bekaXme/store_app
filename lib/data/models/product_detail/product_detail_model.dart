@@ -1,3 +1,5 @@
+import 'package:store_app/data/models/product_detail/product_size_model.dart';
+
 class ProductDetailModel {
   final int id;
   final String title;
@@ -5,7 +7,7 @@ class ProductDetailModel {
   final double price;
   final bool isLiked;
   final List<String> productImages;
-  final List<String> productSizes;
+  final List<ProductSizeModel> productSizes;
   final int reviewsCount;
   final double rating;
 
@@ -31,8 +33,9 @@ class ProductDetailModel {
       productImages: (json['productImages'] as List)
           .map((e) => e['image'] as String)
           .toList(),
-      productSizes:
-      (json['productSizes'] as List).map((e) => e['title'] as String).toList(),
+      productSizes: (json['productSizes'] as List)
+          .map((e) => ProductSizeModel.fromJson(e))
+          .toList(),
       reviewsCount: json['reviewsCount'] ?? 0,
       rating: (json['rating'] as num).toDouble(),
     );

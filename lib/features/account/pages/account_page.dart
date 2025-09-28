@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:go_router/go_router.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:store_app/features/common/bottom_nav_widget.dart';
 
 class MyAccountPage extends StatefulWidget {
   const MyAccountPage({super.key});
@@ -57,7 +60,7 @@ class _MyAccountPageState extends State<MyAccountPage> {
             imageLocation: Icons.person_pin,
             titleLocation: 'My Details',
             navigateIcon: Icons.arrow_forward_ios,
-            goLocation: '/profile',
+            goLocation: '/myAccountPage',
           ),
           Divider(),
           AccountToLocation(
@@ -89,7 +92,7 @@ class _MyAccountPageState extends State<MyAccountPage> {
             imageLocation: Icons.question_mark_outlined,
             titleLocation: 'FAQs',
             navigateIcon: Icons.arrow_forward_ios,
-            goLocation: '/notifications',
+            goLocation: '/faq',
           ),
           Divider(),
           AccountToLocation(
@@ -100,53 +103,19 @@ class _MyAccountPageState extends State<MyAccountPage> {
           ),
           Divider(
             color: Color(0xFFE6E6E6),
-            height: 8,
             thickness: 10,
+            height: 8,
           ),
           AccountToLocation(
             imageLocation: Icons.logout_rounded,
             titleLocation: 'Log Out',
             iconColor: Colors.red,
             titleColor: Colors.red,
-            goLocation: '/help',
+            goLocation: '/logout', 
           ),
         ]
       ),
-      // bottomNavigationBar: BottomNavigationBar(
-      //   currentIndex: currentIndex,
-      //   onTap: (index) {
-      //     setState(() {
-      //       currentIndex = index;
-      //     });
-      //     switch (index) {
-      //       case 0:
-      //         context.go('/home');
-      //         break;
-      //       case 1:
-      //         context.go('/searchPage');
-      //         break;
-      //       case 2:
-      //         context.go('/savedProducts');
-      //         break;
-      //       case 3:
-      //         context.go('/cart');
-      //         break;
-      //       case 4:
-      //         context.go('/myAccount');
-      //         break;
-      //     }
-      //   },
-      //   type: BottomNavigationBarType.fixed,
-      //   selectedItemColor: Colors.black,
-      //   items: const [
-      //     BottomNavigationBarItem(icon: Icon(Icons.home), label: "Home"),
-      //     BottomNavigationBarItem(icon: Icon(Icons.search), label: "Search"),
-      //     BottomNavigationBarItem(
-      //         icon: Icon(Icons.favorite_border), label: "Saved"),
-      //     BottomNavigationBarItem(icon: Icon(Icons.shopping_cart), label: "Cart"),
-      //     BottomNavigationBarItem(icon: Icon(Icons.person), label: "Account"),
-      //   ],
-      // ),
+      bottomNavigationBar: CustomBottomNav(currentIndex: 4),
     );
   }
 }
@@ -172,15 +141,56 @@ class AccountToLocation extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListTile(
-      onTap: () {
-        context.go(goLocation);
+      onTap: () async {
+        if (titleLocation == "Log Out") {
+          _showLogoutDialog(context);
+        } else {
+          context.go(goLocation);
+        }
       },
-      leading: Icon(imageLocation, weight: 28,color: iconColor,),
+      leading: Icon(imageLocation, size: 28, color: iconColor),
       title: Text(
         titleLocation,
-        style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: titleColor),
+        style: TextStyle(
+          fontSize: 16,
+          fontWeight: FontWeight.w500,
+          color: titleColor ?? Colors.black,
+        ),
       ),
-      trailing: Icon(navigateIcon, size: 18),
+      trailing: navigateIcon != null ? Icon(navigateIcon, size: 18) : null,
+    );
+  }
+
+  void _showLogoutDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (ctx) {
+        return AlertDialog(
+          title: const Text("Log Out"),
+          content: const Text("Are you sure you want to log out?"),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text("Cancel"),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red,
+              ),
+              onPressed: () async {
+                final prefs = await SharedPreferences.getInstance();
+                await prefs.remove("token");
+
+                if (context.mounted) {
+                  Navigator.pop(ctx);
+                  context.go('/login');
+                }
+              },
+              child: const Text("Log Out"),
+            ),
+          ],
+        );
+      },
     );
   }
 }

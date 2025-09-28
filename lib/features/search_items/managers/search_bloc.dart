@@ -22,13 +22,16 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
 
     emit(state.copyWith(status: SearchStatus.loading));
 
-    final result = await repository.getSearchItems();
+    final result = await repository.getSearchItems(query);
     result.fold(
       onSuccess: (data) {
         if (data.isEmpty) {
           emit(state.copyWith(status: SearchStatus.empty));
         } else {
-          final updatedHistory = [...state.recentSearches, query];
+          // Avoid duplicate searches
+          final updatedHistory = state.recentSearches.contains(query)
+              ? state.recentSearches
+              : [...state.recentSearches, query];
           emit(state.copyWith(
             status: SearchStatus.success,
             results: data,

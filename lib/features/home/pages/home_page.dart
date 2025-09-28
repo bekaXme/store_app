@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import '../../common/bottom_nav_widget.dart';
 import '../../savedProducts/bloc/saved_product_bloc.dart';
 import '../../savedProducts/bloc/saved_products_event.dart';
 import '../../savedProducts/bloc/saved_products_state.dart';
@@ -227,41 +228,7 @@ class _HomePageState extends State<HomePage> {
           );
         },
       ),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: currentIndex,
-        onTap: (index) {
-          setState(() {
-            currentIndex = index;
-          });
-          switch (index) {
-            case 0:
-              context.go('/home');
-              break;
-            case 1:
-              context.go('/searchPage');
-              break;
-            case 2:
-              context.go('/savedProducts');
-              break;
-            case 3:
-              context.go('/cart');
-              break;
-            case 4:
-              context.go('/myAccount');
-              break;
-          }
-        },
-        type: BottomNavigationBarType.fixed,
-        selectedItemColor: Colors.black,
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: "Home"),
-          BottomNavigationBarItem(icon: Icon(Icons.search), label: "Search"),
-          BottomNavigationBarItem(
-              icon: Icon(Icons.favorite_border), label: "Saved"),
-          BottomNavigationBarItem(icon: Icon(Icons.shopping_cart), label: "Cart"),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: "Account"),
-        ],
-      ),
+      bottomNavigationBar:const CustomBottomNav(currentIndex: 0),
     );
   }
 }

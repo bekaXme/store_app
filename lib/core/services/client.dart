@@ -8,7 +8,7 @@ class ApiClient {
   ApiClient({required this.interceptor}) {
     _dio = Dio(
       BaseOptions(
-        baseUrl: "http://192.168.10.53:8888/api/v1",
+        baseUrl: "http://192.168.0.111:8888/api/v1",
       ),
     )..interceptors.add(interceptor);
   }
@@ -49,6 +49,36 @@ class ApiClient {
     } on DioException catch (e) {
       if (e.type == DioExceptionType.connectionTimeout || e.type == DioExceptionType.receiveTimeout) {
         return Result.error(Exception('Request timed out. Please check your network connection.'));
+      }
+      return Result.error(Exception('Network error: ${e.message}'));
+    } catch (e) {
+      return Result.error(Exception('Unexpected error: $e'));
+    }
+  }
+
+  Future<Result<T>> delete<T>(
+      String path, {
+        Map<String, dynamic>? queryParameters,
+      }) async {
+    try {
+      final response = await _dio.delete(path, queryParameters: queryParameters);
+      if (response.statusCode == 200 || response.statusCode == 204) {
+        // Some delete APIs return no body, so cast carefully
+        return Result.success(
+          response.data != null ? response.data as T : null as T,
+        );
+      } else {
+        return Result.error(
+          Exception(
+            'Failed to delete: ${response.statusCode} - ${response.statusMessage}',
+          ),
+        );
+      }
+    } on DioException catch (e) {
+      if (e.type == DioExceptionType.connectionTimeout ||
+          e.type == DioExceptionType.receiveTimeout) {
+        return Result.error(
+            Exception('Request timed out. Please check your network connection.'));
       }
       return Result.error(Exception('Network error: ${e.message}'));
     } catch (e) {

@@ -2,20 +2,30 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
+import 'package:store_app/features/common/bottom_nav_widget.dart';
 import 'package:store_app/features/savedProducts/bloc/saved_products_state.dart';
+import '../../cart/managers/cart_bloc.dart';
+import '../../cart/managers/cart_event.dart';
 import '../managers/product_detail_bloc.dart';
 import '../managers/product_detail_state.dart';
 
-class ProductDetailPage extends StatelessWidget {
+class ProductDetailPage extends StatefulWidget {
   final int productId;
 
   const ProductDetailPage({super.key, required this.productId});
 
   @override
+  State<ProductDetailPage> createState() => _ProductDetailPageState();
+}
+
+class _ProductDetailPageState extends State<ProductDetailPage> {
+  int? selectedSizeIndex;
+
+  @override
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (context) =>
-      context.read<ProductDetailBloc>()..add(GetProductId(id: productId)),
+      context.read<ProductDetailBloc>()..add(GetProductId(id: widget.productId)),
       child: Scaffold(
         appBar: AppBar(
           leading: IconButton(
@@ -57,6 +67,7 @@ class ProductDetailPage extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  // Product image
                   Container(
                     width: 341.w,
                     height: 368.h,
@@ -119,6 +130,7 @@ class ProductDetailPage extends StatelessWidget {
                   ),
                   SizedBox(height: 16.h),
 
+                  // Title
                   Text(
                     product.title,
                     style: TextStyle(
@@ -128,36 +140,39 @@ class ProductDetailPage extends StatelessWidget {
                   ),
                   SizedBox(height: 8.h),
 
-                  GestureDetector(
-                    onTap: () {},
-                    child: Row(
-                      children: [
-                        Icon(Icons.star, color: Colors.orange, size: 20.sp),
-                        SizedBox(width: 4.w),
-                        Text(
-                          "${product.rating.toStringAsFixed(1)}/5",
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16.sp,
-                          ),
+                  // Rating + reviews
+                  Row(
+                    children: [
+                      Icon(Icons.star, color: Colors.orange, size: 20.sp),
+                      SizedBox(width: 4.w),
+                      Text(
+                        "${product.rating.toStringAsFixed(1)}/5",
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16.sp,
                         ),
-                        SizedBox(width: 6.w),
-                        Text(
-                          "(${product.reviewsCount} reviews)",
-                          style: TextStyle(color: Colors.grey, fontSize: 14.sp),
-                        ),
-                      ],
-                    ),
+                      ),
+                      SizedBox(width: 6.w),
+                      Text(
+                        "(${product.reviewsCount} reviews)",
+                        style: TextStyle(color: Colors.grey, fontSize: 14.sp),
+                      ),
+                    ],
                   ),
                   SizedBox(height: 12.h),
 
                   // Description
                   Text(
                     product.description,
-                    style: TextStyle(color: Colors.black87, height: 1.4, fontSize: 14.sp),
+                    style: TextStyle(
+                      color: Colors.black87,
+                      height: 1.4,
+                      fontSize: 14.sp,
+                    ),
                   ),
                   SizedBox(height: 20.h),
 
+                  // Sizes
                   Text(
                     "Choose size",
                     style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16.sp),
@@ -165,24 +180,24 @@ class ProductDetailPage extends StatelessWidget {
                   SizedBox(height: 8.h),
                   Wrap(
                     spacing: 10.w,
-                    children: product.productSizes
-                        .map(
-                          (size) => ChoiceChip(
-                        label: Text(size, style: TextStyle(fontSize: 14.sp)),
-                        selected: false,
-                      ),
-                    )
-                        .toList(),
+                    children: List.generate(product.productSizes.length, (index) {
+                      final size = product.productSizes[index];
+                      return ChoiceChip(
+                        label: Text(size.title, style: TextStyle(fontSize: 14.sp)),
+                        selected: selectedSizeIndex == index,
+                        onSelected: (selected) {
+                          setState(() {
+                            selectedSizeIndex = selected ? index : null;
+                          });
+                        },
+                      );
+                    }),
                   ),
 
                   SizedBox(height: 24.h),
+                  Divider(color: Colors.black, thickness: 1.h, height: 1.h),
 
-                  Divider(
-                    color: Colors.black,
-                    thickness: 1.h,
-                    height: 1.h,
-                  ),
-
+                  // Price + Add to Cart
                   Row(
                     children: [
                       Text(
@@ -197,6 +212,21 @@ class ProductDetailPage extends StatelessWidget {
                         flex: 2,
                         child: ElevatedButton.icon(
                           onPressed: () {
+                            if (selectedSizeIndex == null) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text("Please select a size")),
+                              );
+                              return;
+                            }
+
+                            final sizeId = product.productSizes[selectedSizeIndex!].id;
+                            final productId = product.id;
+
+                            context.read<CartBloc>().add(AddToCart(productId: productId, sizeId: sizeId));
+
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text("Added to cart")),
+                            );
                           },
                           icon: Icon(Icons.shopping_cart_outlined, size: 20.sp),
                           label: Text("Add to Cart", style: TextStyle(fontSize: 16.sp)),
@@ -206,7 +236,7 @@ class ProductDetailPage extends StatelessWidget {
                               borderRadius: BorderRadius.circular(12.r),
                             ),
                             backgroundColor: Colors.black,
-                            foregroundColor: Colors.white
+                            foregroundColor: Colors.white,
                           ),
                         ),
                       ),
@@ -217,6 +247,7 @@ class ProductDetailPage extends StatelessWidget {
             );
           },
         ),
+        bottomNavigationBar: CustomBottomNav(currentIndex: 4),
       ),
     );
   }

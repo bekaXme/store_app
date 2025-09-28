@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:store_app/data/repositories/search/search_repository.dart';
+import 'package:store_app/features/common/bottom_nav_widget.dart';
 
 import '../managers/search_bloc.dart';
 import '../managers/search_events.dart';
@@ -33,9 +35,24 @@ class _SearchViewState extends State<_SearchView> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Search"),
         leading: const BackButton(),
-        actions: const [Icon(Icons.notifications_none)],
+        title: TextField(
+          controller: _controller,
+          autofocus: true,
+          decoration: InputDecoration(
+            hintText: "Search for clothes...",
+            border: InputBorder.none,
+            hintStyle: TextStyle(color: Colors.grey.shade500),
+            prefixIcon: const Icon(Icons.search),
+          ),
+          onChanged: (value) {
+            context.read<SearchBloc>().add(SearchTextChanged(value));
+          },
+        ),
+        actions: const [Padding(
+          padding: EdgeInsets.only(right: 12.0),
+          child: Icon(Icons.notifications_none),
+        )],
       ),
       body: BlocBuilder<SearchBloc, SearchState>(
         builder: (context, state) {
@@ -53,66 +70,79 @@ class _SearchViewState extends State<_SearchView> {
           }
         },
       ),
-      bottomNavigationBar: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: TextField(
-          controller: _controller,
-          decoration: InputDecoration(
-            hintText: "Search for clothes...",
-            prefixIcon: const Icon(Icons.search),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-          ),
-          onChanged: (value) {
-            context.read<SearchBloc>().add(SearchTextChanged(value));
-          },
-        ),
-      ),
+      bottomNavigationBar: CustomBottomNav(currentIndex: 1),
     );
   }
 
   Widget _buildRecentSearches(BuildContext context, List<String> recent) {
-    return ListView(
+    if (recent.isEmpty) {
+      return const Center(child: Text("No recent searches"));
+    }
+    return Padding(
       padding: const EdgeInsets.all(16),
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            const Text("Recent Searches"),
-            GestureDetector(
-              onTap: () {
-                context.read<SearchBloc>().add(ClearSearchHistory());
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text("Recent Searches", style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+              GestureDetector(
+                onTap: () {
+                  context.read<SearchBloc>().add(ClearSearchHistory());
+                },
+                child: const Text("Clear all", style: TextStyle(color: Colors.blue)),
+              )
+            ],
+          ),
+          const SizedBox(height: 12),
+          Expanded(
+            child: ListView.separated(
+              itemCount: recent.length,
+              separatorBuilder: (_, __) => const Divider(),
+              itemBuilder: (context, index) {
+                final item = recent[index];
+                return ListTile(
+                  title: Text(item),
+                  onTap: () {
+                    _controller.text = item;
+                    context.read<SearchBloc>().add(SearchTextChanged(item));
+                  },
+                );
               },
-              child: const Text("Clear all", style: TextStyle(color: Colors.blue)),
-            )
-          ],
-        ),
-        ...recent.map((e) => ListTile(
-          title: Text(e),
-          onTap: () {
-            _controller.text = e;
-            context.read<SearchBloc>().add(SearchTextChanged(e));
-          },
-        )),
-      ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 
   Widget _buildResults(List results) {
-    return ListView.builder(
+    return ListView.separated(
       padding: const EdgeInsets.all(16),
       itemCount: results.length,
+      separatorBuilder: (_, __) => const Divider(),
       itemBuilder: (context, index) {
         final item = results[index];
-        return ListTile(
-          leading: const CircleAvatar(
-            backgroundImage: AssetImage("assets/images/shirt.png"), // replace with real image
+        return  ListTile(
+          leading: ClipRRect(
+            borderRadius: BorderRadius.circular(8),
+            child: Image.network(
+              item.image,
+              width: 48,
+              height: 48,
+              fit: BoxFit.cover,
+            ),
           ),
-          title: Text(item.title),
-          subtitle: Text("\$${item.price}"),
-          trailing: const Icon(Icons.open_in_new),
+          title: Text(item.title, style: const TextStyle(fontWeight: FontWeight.w500)),
+          subtitle: Text("\$${item.price}", style: const TextStyle(color: Colors.black87)),
+          trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+          onTap: () {
+            // Navigate to detail page with productId
+            context.go('/product/${item.id}');
+          },
         );
+
       },
     );
   }
@@ -122,10 +152,12 @@ class _SearchViewState extends State<_SearchView> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.search_off, size: 60, color: Colors.grey),
+          Icon(Icons.search_off, size: 80, color: Colors.grey),
           SizedBox(height: 16),
-          Text("No Results Found!"),
-          Text("Try a similar word or something more general."),
+          Text("No Results Found!", style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+          SizedBox(height: 4),
+          Text("Try a similar word or something more general.",
+              style: TextStyle(color: Colors.grey)),
         ],
       ),
     );

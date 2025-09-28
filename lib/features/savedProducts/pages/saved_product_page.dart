@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:store_app/features/common/bottom_nav_widget.dart';
 import '../../savedProducts/bloc/saved_product_bloc.dart';
 import '../../savedProducts/bloc/saved_products_state.dart';
 
@@ -108,6 +109,7 @@ class SavedProductsPage extends StatelessWidget {
           );
         },
       ),
+      bottomNavigationBar: CustomBottomNav(currentIndex: 2),
     );
   }
 }

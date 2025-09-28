@@ -22,7 +22,7 @@ class SavedProductsRepository {
   Future<Result<void>> toggleSaveProduct(int productId) async {
     final response = await _client.post(
       '/auth/save/$productId',
-      data: {}, // depends on your backend, empty body works in many cases
+      data: {},
     );
 
     return response.fold(
