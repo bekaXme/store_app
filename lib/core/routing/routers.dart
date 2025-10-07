@@ -4,6 +4,8 @@ import 'package:provider/provider.dart';
 import 'package:store_app/data/repositories/savedProducts/saved_products_repository.dart';
 import 'package:store_app/data/repositories/search/search_repository.dart';
 import 'package:store_app/features/account/pages/account_page.dart';
+import 'package:store_app/features/adress/pages/add_new_address_page.dart';
+import 'package:store_app/features/adress/pages/address_page.dart';
 import 'package:store_app/features/auth/managers/reset_password_view_model.dart';
 import 'package:store_app/features/auth/pages/login_page.dart';
 import 'package:store_app/features/auth/pages/reset_password_page.dart';
@@ -24,6 +26,7 @@ import '../../features/auth/pages/get_otp_page.dart';
 import '../../features/auth/pages/new_password_page.dart';
 import '../../features/auth/pages/register_page.dart';
 import '../../features/faq/faq_page.dart';
+import '../../features/help_center/pages/help_center_page.dart';
 import '../../features/onboarding/pages/onboarding_main.dart';
 import '../../features/productDetail/pages/product_detail_page.dart';
 
@@ -62,10 +65,17 @@ final GoRouter router = GoRouter(
         return ProductDetailPage(productId: id);
       },
     ),
+    GoRoute(
+      path: '/help_center',
+      builder: (content, state) => HelpCenterPage(),
+    ),
     GoRoute(path: '/my_cart', builder: (context, state) => CartPage()),
     GoRoute(path: '/cards', builder: (context, state) => PaymentPage()),
     GoRoute(path: '/addCard', builder: (context, state) => AddCardPage()),
-    GoRoute(path: '/paymentMethods', builder: (context, state) => PaymentMethodPage()),
+    GoRoute(
+      path: '/paymentMethods',
+      builder: (context, state) => PaymentMethodPage(),
+    ),
     GoRoute(path: '/myAccountPage', builder: (context, state) => MePage()),
     GoRoute(path: '/faq', builder: (context, state) => FAQPage()),
     GoRoute(
@@ -74,6 +84,8 @@ final GoRouter router = GoRouter(
           SearchPage(repository: context.read<SearchRepository>()),
     ),
     GoRoute(path: '/myAccount', builder: (context, state) => MyAccountPage()),
+    GoRoute(path: '/address', builder: (context, state) => AddressPage()),
+    GoRoute(path: '/addAddress', builder: (context, state) => AddNewAddressPage()),
     ShellRoute(
       builder: (context, state, child) => ChangeNotifierProvider(
         create: (context) => ResetPasswordVM(context.read<AuthRepository>()),

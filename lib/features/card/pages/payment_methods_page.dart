@@ -26,30 +26,50 @@ class PaymentMethodPage extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text("Saved Cards",
-                    style: TextStyle(
-                        fontSize: 16, fontWeight: FontWeight.w600)),
+                const Text(
+                  "Saved Cards",
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                ),
                 const SizedBox(height: 16),
 
                 if (state is PaymentLoading)
                   const Center(child: CircularProgressIndicator()),
 
+                if (state is PaymentError)
+                  Center(child: Text(state.errorMessage as String)),
+
                 if (state is PaymentLoaded)
-                  Expanded(
+                  state.cards.isEmpty
+                      ? const Center(
+                    child: Text(
+                      "No cards available. Add a new card.",
+                      style: TextStyle(fontSize: 16),
+                    ),
+                  )
+                      : Expanded(
                     child: ListView.builder(
                       itemCount: state.cards.length,
                       itemBuilder: (context, index) {
                         final card = state.cards[index];
                         return Card(
                           shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12)),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
                           margin: const EdgeInsets.only(bottom: 12),
                           child: ListTile(
-                            leading: const Icon(Icons.credit_card, size: 32),
+                            leading: const Icon(
+                              Icons.credit_card,
+                              size: 32,
+                              color: Colors.blue,
+                            ),
                             title: Text(
                               "**** **** **** ${card.cardNumber.substring(card.cardNumber.length - 4)}",
-                              style: const TextStyle(fontSize: 16),
+                              style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                              ),
                             ),
+                            subtitle: Text("Expires: ${card.expiryDate}"),
                             trailing: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
@@ -61,9 +81,13 @@ class PaymentMethodPage extends StatelessWidget {
                                         .read<PaymentBloc>()
                                         .add(SelectCardEvent(val!));
                                   },
+                                  activeColor: Colors.blue,
                                 ),
                                 IconButton(
-                                  icon: const Icon(Icons.delete, color: Colors.red),
+                                  icon: const Icon(
+                                    Icons.delete,
+                                    color: Colors.red,
+                                  ),
                                   onPressed: () {
                                     context
                                         .read<PaymentBloc>()
@@ -78,6 +102,8 @@ class PaymentMethodPage extends StatelessWidget {
                     ),
                   ),
 
+                const SizedBox(height: 20),
+
                 // Add New Card button
                 GestureDetector(
                   onTap: () => context.go('/addCard'),
@@ -89,8 +115,10 @@ class PaymentMethodPage extends StatelessWidget {
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: const Center(
-                      child: Text("+ Add New Card",
-                          style: TextStyle(fontSize: 16)),
+                      child: Text(
+                        "+ Add New Card",
+                        style: TextStyle(fontSize: 16),
+                      ),
                     ),
                   ),
                 ),
@@ -100,21 +128,30 @@ class PaymentMethodPage extends StatelessWidget {
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
-                    onPressed: () {
-                      if (state is PaymentLoaded &&
-                          state.cards[1] != null) {
-                        context.pop(); // Return selected card
-                      }
-                    },
+                    onPressed: state is PaymentLoaded &&
+                        state.cards.isNotEmpty &&
+                        state.selectedCardId != null
+                        ? () {
+                      final selectedCard = state.cards.firstWhere(
+                            (card) => card.id == state.selectedCardId,
+                      );
+                      context.pop(selectedCard); // Return selected card
+                    }
+                        : null, // Disable button if no card is selected or no cards
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.black,
                       padding: const EdgeInsets.symmetric(vertical: 16),
                     ),
-                    child: const Text("Apply",
-                        style: TextStyle(
-                            fontSize: 16, fontWeight: FontWeight.w600)),
+                    child: const Text(
+                      "Apply",
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white,
+                      ),
+                    ),
                   ),
-                )
+                ),
               ],
             ),
           ),

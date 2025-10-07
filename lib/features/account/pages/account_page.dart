@@ -74,7 +74,7 @@ class _MyAccountPageState extends State<MyAccountPage> {
             imageLocation: Icons.credit_card,
             titleLocation: 'Payment Methods',
             navigateIcon: Icons.arrow_forward_ios,
-            goLocation: '/help',
+            goLocation: '/cards',
           ),
           Divider(),
           AccountToLocation(
@@ -99,7 +99,7 @@ class _MyAccountPageState extends State<MyAccountPage> {
             imageLocation: Icons.headphones,
             titleLocation: 'Help Center',
             navigateIcon: Icons.arrow_forward_ios,
-            goLocation: '/help',
+            goLocation: '/help_center',
           ),
           Divider(
             color: Color(0xFFE6E6E6),

@@ -77,8 +77,6 @@ class CartBloc extends Bloc<CartEvent, CartState> {
       ));
       return;
     }
-
-    // Refresh cart after adding
     final cartResult = await repository.getCartItem();
     cartResult.fold(
       onError: (err) {

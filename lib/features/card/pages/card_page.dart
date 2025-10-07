@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import '../../../data/models/payment/payment_model.dart';
+import '../../../data/models/address/adres_model.dart';
 import '../../cart/managers/cart_bloc.dart';
 import '../../cart/managers/cart_state.dart';
 import '../managers/card_bloc.dart';
@@ -19,8 +20,11 @@ class _PaymentPageState extends State<PaymentPage> {
   final TextEditingController cardNumberController = TextEditingController();
   final TextEditingController expiryController = TextEditingController();
   final TextEditingController codeController = TextEditingController();
+  final TextEditingController promoController = TextEditingController();
 
+  late AddressModel selectedAddress;
   String selectedPayment = 'Card';
+  CardModel? selectedCard; // Track the selected card
 
   @override
   void initState() {
@@ -28,66 +32,25 @@ class _PaymentPageState extends State<PaymentPage> {
     context.read<PaymentBloc>().add(LoadCardsEvent());
   }
 
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final extra = GoRouterState.of(context).extra;
+    if (extra != null && extra is AddressModel) {
+      selectedAddress = extra;
+    } else {
+      selectedAddress = AddressModel(
+        title: "Home",
+        fullAddress: "No address selected",
+        isDefault: false,
+        lat: 0,
+        lng: 0,
+      );
+    }
+  }
+
   void _showAddCardDialog() {
-    showDialog(
-      context: context,
-      builder: (_) => AlertDialog(
-        title: const Text('Add Card'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              controller: cardNumberController,
-              decoration: const InputDecoration(labelText: 'Card Number'),
-              keyboardType: TextInputType.number,
-            ),
-            TextField(
-              controller: expiryController,
-              decoration: const InputDecoration(labelText: 'Expiry Date (MM/YY)'),
-              keyboardType: TextInputType.datetime,
-            ),
-            TextField(
-              controller: codeController,
-              decoration: const InputDecoration(labelText: 'Security Code'),
-              keyboardType: TextInputType.number,
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              final cardNumber = cardNumberController.text.trim();
-              final expiryDate = expiryController.text.trim();
-              final securityCode = codeController.text.trim();
-
-              if (cardNumber.isEmpty || expiryDate.isEmpty || securityCode.isEmpty) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Please fill all fields')),
-                );
-                return;
-              }
-
-              final card = CardModel(
-                id: 0,
-                cardNumber: cardNumber,
-                expiryDate: expiryDate,
-                securityCode: securityCode,
-              );
-              context.read<PaymentBloc>().add(AddCardEvent(card));
-              Navigator.pop(context);
-              cardNumberController.clear();
-              expiryController.clear();
-              codeController.clear();
-            },
-            child: const Text('Add'),
-          ),
-        ],
-      ),
-    );
+    context.go('/addCard'); // Navigate to add card page
   }
 
   @override
@@ -116,8 +79,10 @@ class _PaymentPageState extends State<PaymentPage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Delivery Address
-            const Text("Delivery Address",
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+            const Text(
+              "Delivery Address",
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+            ),
             const SizedBox(height: 8),
             Row(
               children: [
@@ -126,24 +91,45 @@ class _PaymentPageState extends State<PaymentPage> {
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
-                    children: const [
-                      Text("Home",
-                          style: TextStyle(
-                              fontSize: 16, fontWeight: FontWeight.w600)),
-                      Text("925 S Chugach St #APT 10, Alaska 99645",
-                          style: TextStyle(color: Colors.grey, fontSize: 14)),
+                    children: [
+                      Text(
+                        selectedAddress.title,
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      Text(
+                        selectedAddress.fullAddress,
+                        style: const TextStyle(
+                          color: Colors.grey,
+                          fontSize: 14,
+                        ),
+                      ),
                     ],
                   ),
                 ),
-                TextButton(onPressed: () {}, child: const Text("Change")),
+                TextButton(
+                  onPressed: () async {
+                    final result = await context.push<AddressModel>('/address');
+                    if (result != null && result is AddressModel) {
+                      setState(() {
+                        selectedAddress = result;
+                      });
+                    }
+                  },
+                  child: const Text("Change"),
+                ),
               ],
             ),
             const Divider(height: 32),
 
-            const Text("Payment Method",
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+            // Payment Method
+            const Text(
+              "Payment Method",
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+            ),
             const SizedBox(height: 8),
-
             Row(
               children: [
                 _paymentButton('Card'),
@@ -155,6 +141,7 @@ class _PaymentPageState extends State<PaymentPage> {
             ),
             const SizedBox(height: 10),
 
+            // Cards / Payment info
             Expanded(
               child: BlocBuilder<PaymentBloc, PaymentState>(
                 builder: (context, state) {
@@ -165,22 +152,44 @@ class _PaymentPageState extends State<PaymentPage> {
                       return Center(child: Text(state.errorMessage as String));
                     } else if (state is PaymentLoaded) {
                       final cards = state.cards;
-                      return cards.isNotEmpty
+                      // Set default selected card if none is selected
+                      if (selectedCard == null && cards.isNotEmpty) {
+                        final defaultCardId = state.selectedCardId ?? cards[0].id;
+                        selectedCard = cards.firstWhere(
+                              (card) => card.id == defaultCardId,
+                          orElse: () => cards[0],
+                        );
+                      }
+                      return cards.isNotEmpty && selectedCard != null
                           ? ListView(
                         children: [
                           ListTile(
-                            leading:
-                            const Icon(Icons.credit_card, color: Colors.blue),
-                            title: Text(
-                              'VISA **** **** ${cards.first.cardNumber.substring(cards.first.cardNumber.length - 4)}',
-                              style:
-                              const TextStyle(fontWeight: FontWeight.w600),
+                            leading: const Icon(
+                              Icons.credit_card,
+                              color: Colors.blue,
                             ),
-                            subtitle: Text("Expires: ${cards.first.expiryDate}"),
+                            title: Text(
+                              'VISA **** **** ${selectedCard!.cardNumber.substring(selectedCard!.cardNumber.length - 4)}',
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            subtitle: Text(
+                              "Expires: ${selectedCard!.expiryDate}",
+                            ),
                             trailing: IconButton(
-                              icon: const Icon(Icons.edit, color: Colors.grey),
-                              onPressed: (){
-                                context.go('/paymentMethods');
+                              icon: const Icon(
+                                Icons.edit,
+                                color: Colors.grey,
+                              ),
+                              onPressed: () async {
+                                final result = await context
+                                    .push<CardModel>('/paymentMethods');
+                                if (result != null && result is CardModel) {
+                                  setState(() {
+                                    selectedCard = result;
+                                  });
+                                }
                               },
                             ),
                           ),
@@ -196,20 +205,29 @@ class _PaymentPageState extends State<PaymentPage> {
                     }
                   } else if (selectedPayment == 'Cash') {
                     return const Center(
-                        child: Text(
-                          "Pay with cash upon delivery",
-                          style: TextStyle(fontSize: 16),
-                        ));
+                      child: Text(
+                        "Pay with cash upon delivery",
+                        style: TextStyle(fontSize: 16),
+                      ),
+                    );
                   } else if (selectedPayment == 'Apple Pay') {
                     return Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: const [
-                            Icon(Icons.phone_iphone, size: 50, color: Colors.green),
-                            SizedBox(height: 10),
-                            Text("Pay quickly with Apple Pay", style: TextStyle(fontSize: 16)),
-                          ],
-                        ));
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: const [
+                          Icon(
+                            Icons.phone_iphone,
+                            size: 50,
+                            color: Colors.green,
+                          ),
+                          SizedBox(height: 10),
+                          Text(
+                            "Pay quickly with Apple Pay",
+                            style: TextStyle(fontSize: 16),
+                          ),
+                        ],
+                      ),
+                    );
                   }
                   return const SizedBox.shrink();
                 },
@@ -228,8 +246,13 @@ class _PaymentPageState extends State<PaymentPage> {
                 return Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text("Order Summary",
-                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+                    const Text(
+                      "Order Summary",
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
                     const SizedBox(height: 8),
                     _summaryRow("Sub-total", "\$${cart.subTotal}"),
                     _summaryRow("VAT", "\$${cart.vat}"),
@@ -241,29 +264,34 @@ class _PaymentPageState extends State<PaymentPage> {
               },
             ),
 
-
-            // Promo code
+            const SizedBox(height: 10),
+            // Promo Code
             Row(
               children: [
                 Expanded(
                   child: TextField(
+                    controller: promoController,
                     decoration: InputDecoration(
                       prefixIcon: const Icon(Icons.discount_outlined),
                       hintText: "Enter promo code",
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10),
                       ),
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 12),
+                      contentPadding:
+                      const EdgeInsets.symmetric(horizontal: 12),
                     ),
                   ),
                 ),
                 const SizedBox(width: 10),
-                ElevatedButton(onPressed: () {}, child: const Text("Add")),
+                ElevatedButton(
+                  onPressed: () {
+                    context.go('/paymentMethods');
+                  },
+                  child: const Text("Add"),
+                ),
               ],
             ),
-            const Spacer(),
-
-            // Place Order button
+            const SizedBox(height: 10),
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
@@ -271,10 +299,56 @@ class _PaymentPageState extends State<PaymentPage> {
                   backgroundColor: Colors.black,
                   padding: const EdgeInsets.symmetric(vertical: 16),
                 ),
-                onPressed: () {},
+                onPressed: selectedPayment == 'Card' && selectedCard == null
+                    ? null 
+                    : () {
+                  showDialog(
+                    context: context,
+                    builder: (context) {
+                      return AlertDialog(
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        title: const Icon(
+                          Icons.verified,
+                          color: Colors.green,
+                          size: 48,
+                        ),
+                        content: const Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              'Congratulations!',
+                              style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 18),
+                            ),
+                            SizedBox(height: 8),
+                            Text('Your order has been placed.'),
+                          ],
+                        ),
+                        actions: [
+                          TextButton(
+                            style: TextButton.styleFrom(
+                              backgroundColor: Colors.black,
+                              foregroundColor: Colors.white,
+                            ),
+                            onPressed: () {
+                              context.go('/address');
+                            },
+                            child: const Text('Tract your order'),
+                          ),
+                        ],
+                      );
+                    },
+                  );                },
                 child: const Text(
                   "Place Order",
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.white),
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.white,
+                  ),
                 ),
               ),
             ),
@@ -287,7 +361,14 @@ class _PaymentPageState extends State<PaymentPage> {
   Widget _paymentButton(String method) {
     final bool isSelected = selectedPayment == method;
     return TextButton(
-      onPressed: () => setState(() => selectedPayment = method),
+      onPressed: () {
+        setState(() {
+          selectedPayment = method;
+          if (method != 'Card') {
+            selectedCard = null; // Clear selected card for non-card methods
+          }
+        });
+      },
       child: Text(
         method,
         style: TextStyle(color: isSelected ? Colors.white : Colors.black),
@@ -304,16 +385,20 @@ class _PaymentPageState extends State<PaymentPage> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(title,
-              style: TextStyle(
-                fontWeight: bold ? FontWeight.w600 : FontWeight.w400,
-                fontSize: 14,
-              )),
-          Text(value,
-              style: TextStyle(
-                fontWeight: bold ? FontWeight.w600 : FontWeight.w400,
-                fontSize: 14,
-              )),
+          Text(
+            title,
+            style: TextStyle(
+              fontWeight: bold ? FontWeight.w600 : FontWeight.w400,
+              fontSize: 14,
+            ),
+          ),
+          Text(
+            value,
+            style: TextStyle(
+              fontWeight: bold ? FontWeight.w600 : FontWeight.w400,
+              fontSize: 14,
+            ),
+          ),
         ],
       ),
     );
@@ -324,6 +409,7 @@ class _PaymentPageState extends State<PaymentPage> {
     cardNumberController.dispose();
     expiryController.dispose();
     codeController.dispose();
+    promoController.dispose();
     super.dispose();
   }
 }
