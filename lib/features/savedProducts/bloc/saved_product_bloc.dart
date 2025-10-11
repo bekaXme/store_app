@@ -37,12 +37,18 @@ class SavedProductsBloc extends Bloc<SavedProductsEvent, SavedProductsState> {
     final currentSaved = List<SavedProductsModel>.from(state.savedProducts);
     final isAlreadySaved = currentSaved.any((p) => p.id == event.productId);
 
-    final result = await repository.toggleSaveProduct(event.productId);
+    // ✅ Use the correct API based on current save status
+    final result = isAlreadySaved
+        ? await repository.unsave(event.productId)
+        : await repository.toggleSaveProduct(event.productId);
+
     result.fold(
       onSuccess: (_) {
         if (isAlreadySaved) {
+          // 🔴 Remove product if it was already saved
           currentSaved.removeWhere((p) => p.id == event.productId);
         } else {
+          // ❤️ Add product if it wasn’t saved yet
           currentSaved.add(SavedProductsModel(
             id: event.productId,
             categoryId: 0,
@@ -53,6 +59,7 @@ class SavedProductsBloc extends Bloc<SavedProductsEvent, SavedProductsState> {
             discount: 0,
           ));
         }
+
         emit(state.copyWith(
           status: SavedProductsStatus.success,
           savedProducts: currentSaved,
@@ -66,4 +73,5 @@ class SavedProductsBloc extends Bloc<SavedProductsEvent, SavedProductsState> {
       },
     );
   }
+
 }

@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:store_app/features/common/bottom_nav_widget.dart';
 import '../../savedProducts/bloc/saved_product_bloc.dart';
+import '../../savedProducts/bloc/saved_products_event.dart';
 import '../../savedProducts/bloc/saved_products_state.dart';
 
 class SavedProductsPage extends StatelessWidget {
@@ -24,7 +27,7 @@ class SavedProductsPage extends StatelessWidget {
               context.go('/notifications');
             },
             icon: const Icon(Icons.notifications_outlined),
-          )
+          ),
         ],
       ),
       body: BlocBuilder<SavedProductsBloc, SavedProductsState>(
@@ -37,7 +40,39 @@ class SavedProductsPage extends StatelessWidget {
           }
           if (state.savedProducts.isEmpty) {
             return Center(
-              child: Image.asset('assets/images/placeholder.png'),
+              child: Column(
+                spacing: 20,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  SvgPicture.asset(
+                    'assets/icons/Heart.svg',
+                    width: 64,
+                    height: 64,
+                  ),
+                  Text(
+                    'No Saved Items!',
+                    style: TextStyle(
+                      fontWeight: FontWeight.w500,
+                      fontSize: 20,
+                      color: Colors.black,
+                    ),
+                  ),
+                  Container(
+                    alignment: Alignment.center,
+                    width: 252.w,
+                    height: 44.h,
+                    child: Text(
+                      maxLines: 2,
+                      'You don’t have any saved items. Go to home and add some.',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w400,
+                        color: Colors.grey,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             );
           }
 
@@ -70,16 +105,36 @@ class SavedProductsPage extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Expanded(
-                        child: ClipRRect(
-                          borderRadius: const BorderRadius.only(
-                            topLeft: Radius.circular(12),
-                            topRight: Radius.circular(12),
-                          ),
-                          child: Image.network(
-                            product.image,
-                            width: double.infinity,
-                            fit: BoxFit.cover,
-                          ),
+                        child: Stack(
+                          children: [
+                            ClipRRect(
+                              borderRadius: const BorderRadius.only(
+                                topLeft: Radius.circular(12),
+                                topRight: Radius.circular(12),
+                              ),
+                              child: Image.network(
+                                product.image,
+                                width: double.infinity,
+                                fit: BoxFit.cover,
+                              ),
+                            ),
+                            Positioned(
+                              top: 8,
+                              right: 8,
+                              child: IconButton(
+                                icon: const Icon(
+                                  Icons.favorite,
+                                  color: Colors.red,
+                                ),
+                                onPressed: () {
+                                  // 🧠 Toggle save/unsave
+                                  context.read<SavedProductsBloc>().add(
+                                    ToggleSaveProduct(product.id),
+                                  );
+                                },
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                       Padding(
@@ -109,7 +164,7 @@ class SavedProductsPage extends StatelessWidget {
           );
         },
       ),
-      bottomNavigationBar: CustomBottomNav(currentIndex: 2),
+      bottomNavigationBar: const CustomBottomNav(currentIndex: 2),
     );
   }
 }

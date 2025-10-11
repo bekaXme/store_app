@@ -30,4 +30,16 @@ class SavedProductsRepository {
       onError: (e) => Result.error(e),
     );
   }
+
+  Future<Result<void>> unsave(int productId) async {
+    final response = await _client.post(
+      '/auth/unsave/$productId',
+      data: {},
+    );
+
+    return response.fold(
+      onSuccess: (_) => Result.success(null),
+      onError: (e) => Result.error(e),
+    );
+  }
 }

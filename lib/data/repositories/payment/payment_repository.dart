@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:store_app/core/result/result.dart';
 import 'package:store_app/core/services/client.dart';
 import 'package:store_app/data/models/payment/payment_model.dart';
@@ -8,16 +9,20 @@ class PaymentRepository {
   PaymentRepository({required ApiClient client}) : _client = client;
 
   Future<Result<List<CardModel>>> getCards() async {
-    final result = await _client.get<List<dynamic>>('/cards/list');
+    final result = await _client.get<List<dynamic>>('/cards');
     return result.fold(
       onError: (e) {
-        print('API Error in getCards: $e');
+        print(
+          'API Error in getCards: $e, Response: ${e is DioException ? e.response?.data : null}',
+        );
         return Result.error(e);
       },
       onSuccess: (data) {
         try {
           print('Raw JSON in getCards: $data');
-          final cards = data.map((e) => CardModel.fromJson(e as Map<String, dynamic>)).toList();
+          final cards = data
+              .map((e) => CardModel.fromJson(e as Map<String, dynamic>))
+              .toList();
           print('Parsed Cards: $cards');
           return Result.success(cards);
         } catch (e, stackTrace) {
@@ -29,14 +34,19 @@ class PaymentRepository {
   }
 
   Future<Result<CardModel>> postCard(CardModel card) async {
+    final payload = card.toJson();
+    print('Sending POST /cards with payload: $payload');
     final result = await _client.post<Map<String, dynamic>>(
-      '/cards/create',
-      data: card.toJson(),
+      '/cards',
+      data: payload,
     );
     return result.fold(
       onError: (e) {
-        print('API Error in postCard: $e');
-        return Result.error(e);
+        final responseData = e is DioException ? e.response?.data : null;
+        print('API Error in postCard: $e, Response: $responseData');
+        return Result.error(
+          Exception('Failed to add card: ${responseData ?? e.toString()}'),
+        );
       },
       onSuccess: (data) {
         try {
@@ -46,17 +56,19 @@ class PaymentRepository {
           return Result.success(card);
         } catch (e, stackTrace) {
           print('Parsing Error in postCard: $e\n$stackTrace');
-          return Result.error(Exception('Failed to parse cards: $e'));
+          return Result.error(Exception('Failed to parse card: $e'));
         }
       },
     );
   }
 
   Future<Result<void>> deleteCard(int id) async {
-    final result = await _client.delete<void>('/cards/delete/$id');
+    print('Sending DELETE /cards/$id');
+    final result = await _client.delete<void>('/cards/$id');
     return result.fold(
       onError: (e) {
-        print('API Error in deleteCard: $e');
+        final responseData = e is DioException ? e.response?.data : null;
+        print('API Error in deleteCard: $e, Response: $responseData');
         return Result.error(e);
       },
       onSuccess: (_) {

@@ -1,7 +1,14 @@
 import 'package:equatable/equatable.dart';
 import '../../../data/models/cart/cart_item_model.dart';
 
-enum CartStatus { initial, loading, success, failure }
+enum CartStatus {
+  initial,
+  loading,
+  success,
+  failure,
+  orderSuccess,
+  orderFailure,
+}
 
 class CartState extends Equatable {
   final CartStatus status;

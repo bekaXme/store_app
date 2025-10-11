@@ -22,8 +22,10 @@ import 'package:store_app/features/search_items/managers/search_bloc.dart';
 import 'package:store_app/data/repositories/savedProducts/saved_products_repository.dart';
 import 'package:store_app/features/productDetail/managers/product_detail_bloc.dart';
 import 'package:store_app/features/savedProducts/bloc/saved_product_bloc.dart';
-import 'package:store_app/data/repositories/payment/payment_repository.dart'; // Add PaymentRepository
-import 'package:store_app/features/card/managers/card_bloc.dart'; // Add PaymentBloc
+import 'package:store_app/data/repositories/payment/payment_repository.dart';
+import 'package:store_app/features/card/managers/card_bloc.dart';
+
+import '../../data/repositories/orders/order_repository.dart';
 
 final List<SingleChildWidget> dependencies = [
   Provider(create: (context) => const FlutterSecureStorage()),
@@ -64,7 +66,16 @@ final List<SingleChildWidget> dependencies = [
     create: (context) => CartRepository(client: context.read<ApiClient>()),
   ),
 
-  BlocProvider(create: (context) => CartBloc(context.read<CartRepository>())),
+  Provider<OrderRepository>(
+    create: (context) => OrderRepository(client: context.read<ApiClient>()),
+  ),
+
+  BlocProvider(
+    create: (context) => CartBloc(
+      context.read<CartRepository>(),
+      context.read<OrderRepository>(),
+    ),
+  ),
 
   RepositoryProvider(
     create: (context) =>
@@ -107,7 +118,6 @@ final List<SingleChildWidget> dependencies = [
         NotificationsCubit(context.read<NotificationRepository>())..loadData(),
   ),
 
-  // Add PaymentRepository and PaymentBloc
   RepositoryProvider(
     create: (context) => PaymentRepository(client: context.read<ApiClient>()),
   ),

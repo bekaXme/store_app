@@ -19,6 +19,7 @@ class _AddCardPageState extends State<AddCardPage> {
   final _cardNumberController = TextEditingController();
   final _expiryController = TextEditingController();
   final _cvcController = TextEditingController();
+  final _cardHolderController = TextEditingController();
 
   bool isLoading = false;
 
@@ -26,21 +27,27 @@ class _AddCardPageState extends State<AddCardPage> {
   Widget build(BuildContext context) {
     return BlocListener<PaymentBloc, PaymentState>(
       listener: (context, state) {
-        if (state is PaymentLoading) setState(() => isLoading = true);
-        if (state is PaymentLoaded) {
-          setState(() => isLoading = false);
-          context.go('/paymentMethod'); // Go back after success
-        }
-        if (state is PaymentError) {
-          setState(() => isLoading = false);
-          ScaffoldMessenger.of(context)
-              .showSnackBar(SnackBar(content: Text(state.errorMessage as String)));
-        }
+        state.maybeWhen(
+          loading: (cards, selectedCardId) {
+            setState(() => isLoading = true);
+          },
+          loaded: (cards, selectedCardId) {
+            setState(() => isLoading = false);
+            context.go('/paymentMethod');
+          },
+          error: (errorMessage, cards, selectedCardId) {
+            setState(() => isLoading = false);
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(SnackBar(content: Text(errorMessage)));
+          },
+          orElse: () {},
+        );
       },
       child: Scaffold(
         appBar: AppBar(
           leading: IconButton(
-            onPressed: () => context.pop(),
+            onPressed: () => context.go('/cards'),
             icon: const Icon(Icons.arrow_back),
           ),
           title: const Text("Add New Card"),
@@ -52,7 +59,6 @@ class _AddCardPageState extends State<AddCardPage> {
             key: _formKey,
             child: Column(
               children: [
-                // Card Number
                 TextFormField(
                   controller: _cardNumberController,
                   keyboardType: TextInputType.number,
@@ -66,14 +72,25 @@ class _AddCardPageState extends State<AddCardPage> {
                     hintText: "#### #### #### ####",
                     border: OutlineInputBorder(),
                   ),
-                  validator: (val) =>
-                  val == null || val.length < 19 ? "Enter valid card" : null,
+                  validator: (val) => val == null || val.length < 19
+                      ? "Enter valid card number"
+                      : null,
                 ),
                 const SizedBox(height: 16),
-
+                TextFormField(
+                  controller: _cardHolderController,
+                  decoration: const InputDecoration(
+                    labelText: "Cardholder Name",
+                    hintText: "John Doe",
+                    border: OutlineInputBorder(),
+                  ),
+                  validator: (val) => val == null || val.isEmpty
+                      ? "Enter cardholder name"
+                      : null,
+                ),
+                const SizedBox(height: 16),
                 Row(
                   children: [
-                    // Expiry Date
                     Expanded(
                       child: TextFormField(
                         controller: _expiryController,
@@ -88,13 +105,12 @@ class _AddCardPageState extends State<AddCardPage> {
                           hintText: "MM/YY",
                           border: OutlineInputBorder(),
                         ),
-                        validator: (val) =>
-                        val == null || val.length < 5 ? "Invalid expiry" : null,
+                        validator: (val) => val == null || val.length < 5
+                            ? "Invalid expiry date"
+                            : null,
                       ),
                     ),
                     const SizedBox(width: 12),
-
-                    // CVV
                     Expanded(
                       child: TextFormField(
                         controller: _cvcController,
@@ -107,46 +123,50 @@ class _AddCardPageState extends State<AddCardPage> {
                           labelText: "CVC",
                           border: OutlineInputBorder(),
                         ),
-                        validator: (val) =>
-                        val == null || val.length != 3 ? "Invalid CVC" : null,
+                        validator: (val) => val == null || val.length != 3
+                            ? "Invalid CVC"
+                            : null,
                       ),
                     ),
                   ],
                 ),
                 const Spacer(),
-
-                // Submit button
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
                     onPressed: isLoading
                         ? null
                         : () {
-                      if (_formKey.currentState!.validate()) {
-                        final card = CardModel(
-                          id: 0,
-                          cardNumber:
-                          _cardNumberController.text.replaceAll(" ", ""),
-                          expiryDate: _formatExpiryToDate(
-                              _expiryController.text),
-                          securityCode: _cvcController.text,
-                        );
-                        context
-                            .read<PaymentBloc>()
-                            .add(AddCardEvent(card));
-                      }
-                    },
+                            if (_formKey.currentState!.validate()) {
+                              final card = CardModel(
+                                cardNumber: _cardNumberController.text
+                                    .replaceAll(" ", ""),
+                                expiryDate: _expiryController.text,
+                                // Send MM/YY format
+                                securityCode: _cvcController.text,
+                                cardHolderName: _cardHolderController.text,
+                              );
+                              context.read<PaymentBloc>().add(
+                                AddCardEvent(card),
+                              );
+                            }
+                          },
                     style: ElevatedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       backgroundColor: Colors.black,
                     ),
                     child: isLoading
                         ? const CircularProgressIndicator(color: Colors.white)
-                        : const Text("Add Card",
-                        style: TextStyle(
-                            fontSize: 16, fontWeight: FontWeight.w600)),
+                        : const Text(
+                            "Add Card",
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.white,
+                            ),
+                          ),
                   ),
-                )
+                ),
               ],
             ),
           ),
@@ -155,20 +175,22 @@ class _AddCardPageState extends State<AddCardPage> {
     );
   }
 
-  // Convert MM/YY -> YYYY-MM-DD
-  String _formatExpiryToDate(String expiry) {
-    final parts = expiry.split('/');
-    final month = parts[0].padLeft(2, '0');
-    final year = "20${parts[1]}";
-    return "$year-$month-01"; // example: 2025-09-01
+  @override
+  void dispose() {
+    _cardNumberController.dispose();
+    _expiryController.dispose();
+    _cvcController.dispose();
+    _cardHolderController.dispose();
+    super.dispose();
   }
 }
 
-/// Formatter: #### #### #### ####
 class _CardNumberFormatter extends TextInputFormatter {
   @override
   TextEditingValue formatEditUpdate(
-      TextEditingValue oldValue, TextEditingValue newValue) {
+    TextEditingValue oldValue,
+    TextEditingValue newValue,
+  ) {
     final digits = newValue.text.replaceAll(' ', '');
     final buffer = StringBuffer();
     for (int i = 0; i < digits.length; i++) {
@@ -184,11 +206,12 @@ class _CardNumberFormatter extends TextInputFormatter {
   }
 }
 
-/// Formatter: MM/YY
 class _ExpiryDateFormatter extends TextInputFormatter {
   @override
   TextEditingValue formatEditUpdate(
-      TextEditingValue oldValue, TextEditingValue newValue) {
+    TextEditingValue oldValue,
+    TextEditingValue newValue,
+  ) {
     var text = newValue.text.replaceAll('/', '');
     if (text.length > 2) {
       text = text.substring(0, 2) + '/' + text.substring(2);

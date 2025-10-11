@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:store_app/features/common/bottom_nav_widget.dart';
-
 import '../managers/cart_bloc.dart';
 import '../managers/cart_event.dart';
 import '../managers/cart_state.dart';
@@ -38,13 +37,23 @@ class _CartPageState extends State<CartPage> {
           ),
         ],
       ),
-      body: BlocBuilder<CartBloc, CartState>(
+      body: BlocConsumer<CartBloc, CartState>(
+        listener: (context, state) {
+          if (state.status == CartStatus.failure) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(state.errorMessage ?? 'An error occurred'),
+              ),
+            );
+          }
+        },
         builder: (context, state) {
           if (state.status == CartStatus.loading) {
             return const Center(child: CircularProgressIndicator());
           }
-          if (state.status == CartStatus.failure) {
-            return Center(child: Text(state.errorMessage ?? 'Failed to load cart'));
+          if (state.status == CartStatus.failure &&
+              state.errorMessage != null) {
+            return Center(child: Text(state.errorMessage!));
           }
           if (state.cart == null || state.cart!.items.isEmpty) {
             return const Center(child: Text('Cart is empty'));
@@ -68,7 +77,6 @@ class _CartPageState extends State<CartPage> {
                       child: Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // Product Image
                           ClipRRect(
                             borderRadius: BorderRadius.circular(8),
                             child: Image.network(
@@ -76,64 +84,100 @@ class _CartPageState extends State<CartPage> {
                               width: 80,
                               height: 80,
                               fit: BoxFit.cover,
+                              errorBuilder: (context, error, stackTrace) =>
+                                  const Icon(
+                                    Icons.error,
+                                    color: Colors.red,
+                                    size: 80,
+                                  ),
+                              loadingBuilder:
+                                  (context, child, loadingProgress) {
+                                    if (loadingProgress == null) return child;
+                                    return const CircularProgressIndicator();
+                                  },
                             ),
                           ),
                           const SizedBox(width: 12),
-
-                          // Title + Size + Price
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(item.title,
-                                    style: const TextStyle(
-                                        fontWeight: FontWeight.w600, fontSize: 16)),
+                                Text(
+                                  item.title,
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 16,
+                                  ),
+                                ),
                                 const SizedBox(height: 4),
-                                Text("Size ${item.size}",
-                                    style: TextStyle(
-                                        color: Colors.grey.shade600, fontSize: 14)),
+                                Text(
+                                  "Size ${item.size}",
+                                  style: TextStyle(
+                                    color: Colors.grey.shade600,
+                                    fontSize: 14,
+                                  ),
+                                ),
                                 const SizedBox(height: 8),
-                                Text("\$${item.price}",
-                                    style: const TextStyle(
-                                        fontWeight: FontWeight.bold, fontSize: 15)),
+                                Text(
+                                  "\$${item.price}",
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 15,
+                                  ),
+                                ),
                               ],
                             ),
                           ),
-
                           Column(
                             children: [
                               IconButton(
-                                icon: const Icon(Icons.delete, color: Colors.red),
+                                icon: const Icon(
+                                  Icons.delete,
+                                  color: Colors.red,
+                                ),
                                 onPressed: () {
-                                  context.read<CartBloc>().add(DeleteFromCart(item.id));
+                                  context.read<CartBloc>().add(
+                                    DeleteFromCart(item.id),
+                                  );
                                 },
                               ),
                               Row(
                                 children: [
                                   _qtyButton("-", () {
-                                    context.read<CartBloc>().add(UpdateQuantity(
-                                        item.id, item.quantity - 1));
+                                    context.read<CartBloc>().add(
+                                      UpdateQuantity(
+                                        item.id,
+                                        item.quantity - 1,
+                                      ),
+                                    );
                                   }),
                                   Padding(
-                                    padding: const EdgeInsets.symmetric(horizontal: 6),
-                                    child: Text("${item.quantity}",
-                                        style: const TextStyle(fontSize: 16)),
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 6,
+                                    ),
+                                    child: Text(
+                                      "${item.quantity}",
+                                      style: const TextStyle(fontSize: 16),
+                                    ),
                                   ),
                                   _qtyButton("+", () {
-                                    context.read<CartBloc>().add(UpdateQuantity(
-                                        item.id, item.quantity + 1));
+                                    context.read<CartBloc>().add(
+                                      UpdateQuantity(
+                                        item.id,
+                                        item.quantity + 1,
+                                      ),
+                                    );
                                   }),
                                 ],
                               ),
                             ],
-                          )
+                          ),
                         ],
                       ),
                     );
                   },
                 ),
               ),
-
               Padding(
                 padding: const EdgeInsets.all(16),
                 child: Column(
@@ -142,8 +186,11 @@ class _CartPageState extends State<CartPage> {
                     _summaryRow("VAT (%)", "\$${state.cart!.vat}"),
                     _summaryRow("Shipping fee", "\$${state.cart!.shippingFee}"),
                     const Divider(),
-                    _summaryRow("Total", "\$${state.cart!.total}",
-                        isBold: true),
+                    _summaryRow(
+                      "Total",
+                      "\$${state.cart!.total}",
+                      isBold: true,
+                    ),
                     const SizedBox(height: 16),
                     SizedBox(
                       width: double.infinity,
@@ -152,7 +199,8 @@ class _CartPageState extends State<CartPage> {
                           backgroundColor: Colors.black,
                           padding: const EdgeInsets.symmetric(vertical: 14),
                           shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12)),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
                         ),
                         onPressed: () {
                           context.go('/cards');
@@ -165,7 +213,7 @@ class _CartPageState extends State<CartPage> {
                     ),
                   ],
                 ),
-              )
+              ),
             ],
           );
         },
@@ -196,15 +244,21 @@ class _CartPageState extends State<CartPage> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(title,
-              style: TextStyle(
-                  fontSize: 15,
-                  color: Colors.grey.shade700,
-                  fontWeight: isBold ? FontWeight.w600 : FontWeight.normal)),
-          Text(value,
-              style: TextStyle(
-                  fontSize: 15,
-                  fontWeight: isBold ? FontWeight.bold : FontWeight.normal)),
+          Text(
+            title,
+            style: TextStyle(
+              fontSize: 15,
+              color: Colors.grey.shade700,
+              fontWeight: isBold ? FontWeight.w600 : FontWeight.normal,
+            ),
+          ),
+          Text(
+            value,
+            style: TextStyle(
+              fontSize: 15,
+              fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
+            ),
+          ),
         ],
       ),
     );

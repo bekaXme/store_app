@@ -31,80 +31,118 @@ class PaymentMethodPage extends StatelessWidget {
                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
                 ),
                 const SizedBox(height: 16),
-
-                if (state is PaymentLoading)
-                  const Center(child: CircularProgressIndicator()),
-
-                if (state is PaymentError)
-                  Center(child: Text(state.errorMessage as String)),
-
-                if (state is PaymentLoaded)
-                  state.cards.isEmpty
+                state.maybeWhen(
+                  loading: (cards, selectedId) =>
+                      const Center(child: CircularProgressIndicator()),
+                  error: (errorMessage, cards, selectedId) =>
+                      Center(child: Text(errorMessage)),
+                  loaded: (cards, selectedId) => cards.isEmpty
                       ? const Center(
-                    child: Text(
-                      "No cards available. Add a new card.",
-                      style: TextStyle(fontSize: 16),
-                    ),
-                  )
+                          child: Text(
+                            "No cards available. Add a new card.",
+                            style: TextStyle(fontSize: 16),
+                          ),
+                        )
                       : Expanded(
-                    child: ListView.builder(
-                      itemCount: state.cards.length,
-                      itemBuilder: (context, index) {
-                        final card = state.cards[index];
-                        return Card(
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          margin: const EdgeInsets.only(bottom: 12),
-                          child: ListTile(
-                            leading: const Icon(
-                              Icons.credit_card,
-                              size: 32,
-                              color: Colors.blue,
-                            ),
-                            title: Text(
-                              "**** **** **** ${card.cardNumber.substring(card.cardNumber.length - 4)}",
-                              style: const TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                            subtitle: Text("Expires: ${card.expiryDate}"),
-                            trailing: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Radio<int>(
-                                  value: card.id,
-                                  groupValue: state.selectedCardId,
-                                  onChanged: (val) {
-                                    context
-                                        .read<PaymentBloc>()
-                                        .add(SelectCardEvent(val!));
-                                  },
-                                  activeColor: Colors.blue,
+                          child: ListView.builder(
+                            itemCount: cards.length,
+                            itemBuilder: (context, index) {
+                              final card = cards[index];
+                              return Card(
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
                                 ),
-                                IconButton(
-                                  icon: const Icon(
-                                    Icons.delete,
-                                    color: Colors.red,
+                                margin: const EdgeInsets.only(bottom: 12),
+                                child: ListTile(
+                                  leading: const Icon(
+                                    Icons.credit_card,
+                                    size: 32,
+                                    color: Colors.blue,
                                   ),
-                                  onPressed: () {
-                                    context
-                                        .read<PaymentBloc>()
-                                        .add(DeleteCardEvent(card.id));
-                                  },
+                                  title: Text(
+                                    "**** **** **** ${card.cardNumber.substring(card.cardNumber.length - 4)}",
+                                    style: const TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                  subtitle: Text("Expires: ${card.expiryDate}"),
+                                  trailing: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      if (card.id != null)
+                                        Radio<int>(
+                                          value: card.id!,
+                                          groupValue: selectedId,
+                                          onChanged: (val) {
+                                            if (val != null) {
+                                              context.read<PaymentBloc>().add(
+                                                SelectCardEvent(val),
+                                              );
+                                            }
+                                          },
+                                          activeColor: Colors.blue,
+                                        ),
+                                      if (card.id != null)
+                                        IconButton(
+                                          icon: const Icon(
+                                            Icons.delete,
+                                            color: Colors.red,
+                                          ),
+                                          onPressed: () {
+                                            showDialog(
+                                              context: context,
+                                              builder: (context) => AlertDialog(
+                                                title: const Text(
+                                                  'Delete Card',
+                                                ),
+                                                content: const Text(
+                                                  'Are you sure you want to delete this card?',
+                                                ),
+                                                actions: [
+                                                  TextButton(
+                                                    onPressed: () =>
+                                                        Navigator.pop(context),
+                                                    child: const Text('Cancel'),
+                                                  ),
+                                                  TextButton(
+                                                    onPressed: () {
+                                                      context
+                                                          .read<PaymentBloc>()
+                                                          .add(
+                                                            DeleteCardEvent(
+                                                              card.id!,
+                                                            ),
+                                                          );
+                                                      Navigator.pop(context);
+                                                    },
+                                                    child: const Text(
+                                                      'Delete',
+                                                      style: TextStyle(
+                                                        color: Colors.red,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            );
+                                          },
+                                        ),
+                                      if (card.id == null)
+                                        const Text(
+                                          'Invalid card',
+                                          style: TextStyle(color: Colors.red),
+                                        ),
+                                    ],
+                                  ),
                                 ),
-                              ],
-                            ),
+                              );
+                            },
                           ),
-                        );
-                      },
-                    ),
-                  ),
-
+                        ),
+                  orElse: () => const SizedBox.shrink(),
+                ),
                 const SizedBox(height: 20),
-
-                // Add New Card button
                 GestureDetector(
                   onTap: () => context.go('/addCard'),
                   child: Container(
@@ -123,21 +161,30 @@ class PaymentMethodPage extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 20),
-
-                // Apply button
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
-                    onPressed: state is PaymentLoaded &&
-                        state.cards.isNotEmpty &&
-                        state.selectedCardId != null
-                        ? () {
-                      final selectedCard = state.cards.firstWhere(
-                            (card) => card.id == state.selectedCardId,
-                      );
-                      context.pop(selectedCard); // Return selected card
-                    }
-                        : null, // Disable button if no card is selected or no cards
+                    onPressed: state.maybeWhen(
+                      loaded: (cards, selectedId) =>
+                          cards.isNotEmpty && selectedId != null
+                          ? () {
+                              final selectedCard = cards.firstWhere(
+                                (card) => card.id == selectedId,
+                                orElse: () => cards.first,
+                              );
+                              if (selectedCard.id != null) {
+                                context.pop(selectedCard);
+                              } else {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text('Selected card is invalid'),
+                                  ),
+                                );
+                              }
+                            }
+                          : null,
+                      orElse: () => null,
+                    ),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.black,
                       padding: const EdgeInsets.symmetric(vertical: 16),

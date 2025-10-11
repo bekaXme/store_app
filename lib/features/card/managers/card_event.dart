@@ -30,5 +30,9 @@ class DeleteCardEvent extends PaymentEvent {
 
 class SelectCardEvent extends PaymentEvent {
   final int selectedId;
-  SelectCardEvent(this.selectedId);
+
+  const SelectCardEvent(this.selectedId);
+
+  @override
+  List<Object?> get props => [selectedId];
 }

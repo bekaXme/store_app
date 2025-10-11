@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
-import 'package:hive/hive.dart';
 import 'package:store_app/features/adress/managers/address_bloc.dart';
 import 'package:store_app/features/adress/managers/address_state.dart';
 import 'package:store_app/features/adress/managers/address_event.dart';
@@ -55,10 +54,8 @@ class _AddressPageState extends State<AddressPage> {
               child: BlocBuilder<AddressBloc, AddressState>(
                 builder: (context, state) {
                   return state.when(
-                    initial: () =>
-                        const Center(child: Text("No addresses yet")),
-                    loading: () =>
-                        const Center(child: CircularProgressIndicator()),
+                    initial: () => const Center(child: Text("No addresses yet")),
+                    loading: () => const Center(child: CircularProgressIndicator()),
                     error: (msg) => Center(child: Text("Error: $msg")),
                     success: (addresses) {
                       if (addresses.isEmpty) {
@@ -73,13 +70,59 @@ class _AddressPageState extends State<AddressPage> {
                               borderRadius: BorderRadius.circular(12),
                             ),
                             child: ListTile(
-                              title: Text(address.title),
+                              title: Text(address.nickname),
                               subtitle: Text(address.fullAddress),
-                              trailing: Icon(
-                                address.isDefault
-                                    ? Icons.check_circle
-                                    : Icons.location_on_outlined,
-                                color: address.isDefault ? Colors.green : null,
+                              trailing: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  GestureDetector(
+                                    onTap: () {
+                                      context
+                                          .read<AddressBloc>()
+                                          .add(SetDefaultAddress(address));
+                                    },
+                                    child: Icon(
+                                      address.isDefault
+                                          ? Icons.check_circle
+                                          : Icons.circle_outlined,
+                                      color: address.isDefault ? Colors.black : null,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  IconButton(
+                                    icon: const Icon(Icons.delete_outline),
+                                    onPressed: () {
+                                      if (address.id != null) {
+                                        showDialog(
+                                          context: context,
+                                          builder: (context) => AlertDialog(
+                                            title: const Text('Delete Address'),
+                                            content: const Text(
+                                                'Are you sure you want to delete this address?'),
+                                            actions: [
+                                              TextButton(
+                                                onPressed: () =>
+                                                    Navigator.pop(context),
+                                                child: const Text('Cancel'),
+                                              ),
+                                              TextButton(
+                                                onPressed: () {
+                                                  context
+                                                      .read<AddressBloc>()
+                                                      .add(DeleteAddress(address.id!));
+                                                  Navigator.pop(context);
+                                                },
+                                                child: const Text('Delete',
+                                                    style:
+                                                    TextStyle(color: Colors.red)),
+                                              ),
+                                            ],
+                                          ),
+                                        );
+                                      }
+                                    },
+                                  ),
+                                ],
                               ),
                             ),
                           );
@@ -147,7 +190,8 @@ class _AddressPageState extends State<AddressPage> {
                   ),
                 ),
               ),
-            ),],
+            ),
+          ],
         ),
       ),
     );
