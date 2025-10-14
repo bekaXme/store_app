@@ -49,7 +49,7 @@ class _MyAccountPageState extends State<MyAccountPage> {
             imageLocation: Icons.add_box,
             titleLocation: 'My Orders',
             navigateIcon: Icons.arrow_forward_ios,
-            goLocation: '/orders',
+            goLocation: '/ordersPage',
           ),
           Divider(
             color: Color(0xFFE6E6E6),
@@ -67,7 +67,7 @@ class _MyAccountPageState extends State<MyAccountPage> {
             imageLocation: Icons.home,
             titleLocation: 'Address Book',
             navigateIcon: Icons.arrow_forward_ios,
-            goLocation: '/settings',
+            goLocation: '/address',
           ),
           Divider(),
           AccountToLocation(

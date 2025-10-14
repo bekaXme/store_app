@@ -6,7 +6,7 @@ class ApiClient {
   final AuthInterceptor interceptor;
 
   ApiClient({required this.interceptor}) {
-    _dio = Dio(BaseOptions(baseUrl: "http://10.0.2.2:8888/api/v1"))
+    _dio = Dio(BaseOptions(baseUrl: "http://192.168.0.108:8888/api/v1"))
       ..interceptors.add(interceptor);
   }
 

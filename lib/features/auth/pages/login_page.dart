@@ -1,3 +1,4 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -26,7 +27,9 @@ class _LoginPageState extends State<LoginPage> {
 
   void _validateInputs() {
     setState(() {
-      _isEmailValid = RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(emailController.text.trim());
+      _isEmailValid = RegExp(
+        r'^[^@]+@[^@]+\.[^@]+',
+      ).hasMatch(emailController.text.trim());
       _isPasswordValid = RegExp(
         r'^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[!@#\$&*~]).{6,}$',
       ).hasMatch(passwordController.text.trim());
@@ -71,7 +74,7 @@ class _LoginPageState extends State<LoginPage> {
                   ),
                 ),
                 const SizedBox(height: 32),
-        
+
                 // Email field
                 RegisterField(
                   hintText: 'Enter your email',
@@ -83,7 +86,7 @@ class _LoginPageState extends State<LoginPage> {
                       : const Icon(Icons.error, color: Colors.red),
                 ),
                 const SizedBox(height: 16),
-        
+
                 // Password field
                 RegisterField(
                   hintText: 'Enter your password',
@@ -93,7 +96,9 @@ class _LoginPageState extends State<LoginPage> {
                   onChanged: (_) => _validateInputs(),
                   suffixIcon: IconButton(
                     icon: Icon(
-                      _isPasswordObscured ? Icons.visibility_off : Icons.visibility,
+                      _isPasswordObscured
+                          ? Icons.visibility_off
+                          : Icons.visibility,
                     ),
                     onPressed: () {
                       setState(() {
@@ -103,11 +108,11 @@ class _LoginPageState extends State<LoginPage> {
                   ),
                 ),
                 const SizedBox(height: 16),
-        
+
                 RichText(
-                  text: const TextSpan(
+                  text: TextSpan(
                     text: 'Forgot password?',
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w400,
                       color: Color(0xFF1A1A1A),
@@ -115,70 +120,80 @@ class _LoginPageState extends State<LoginPage> {
                     children: [
                       TextSpan(
                         text: ' Reset your password',
-                        style: TextStyle(
+                        style: const TextStyle(
                           decoration: TextDecoration.underline,
                           fontSize: 16,
                           fontWeight: FontWeight.w400,
                           color: Color(0xFF1A1A1A),
                         ),
+                        recognizer: TapGestureRecognizer()
+                          ..onTap = () {
+                            context.go('/reset_password');
+                          },
                       ),
                     ],
                   ),
                 ),
                 const SizedBox(height: 32),
-        
+
                 // Login button
                 authVM.isLoading
                     ? const Center(child: CircularProgressIndicator())
                     : TextButton(
-                  style: TextButton.styleFrom(
-                    backgroundColor: (_isPasswordValid && _isEmailValid)
-                        ? const Color(0xFF1A1A1A)
-                        : Colors.grey,
-                    padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 180),
-                  ),
-                  onPressed: (_isPasswordValid && _isEmailValid)
-                      ? () async {
-                    try {
-                      await authVM.fetchLogin(
-                        AuthModel(
-                          fullName: null,
-                          email: emailController.text.trim(),
-                          password: passwordController.text.trim(),
-                        ),
-                      );
-                      if (authVM.error != null) {
-                        print(authVM.error);
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text("Login failed: ${authVM.error}"),
-                            backgroundColor: Colors.red,
+                        style: TextButton.styleFrom(
+                          backgroundColor: (_isPasswordValid && _isEmailValid)
+                              ? const Color(0xFF1A1A1A)
+                              : Colors.grey,
+                          padding: const EdgeInsets.symmetric(
+                            vertical: 16,
+                            horizontal: 180,
                           ),
-                        );
-                      } else if (authVM.user != null && authVM.user!.token != null) {
-                        print("✅ Token: ${authVM.user!.token}");
-                        await storage.write(key: 'token', value: authVM.user!.token);
-                        context.go('/home');
-                      }
-                    } catch (e) {
-                      print(e);
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text("Login failed: $e"),
-                          backgroundColor: Colors.red,
                         ),
-                      );
-                    }
-                  }
-                      : null,
-                  child: const Text(
-                    'Login',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 16,
-                    ),
-                  ),
-                ),
+                        onPressed: (_isPasswordValid && _isEmailValid)
+                            ? () async {
+                                try {
+                                  await authVM.fetchLogin(
+                                    AuthModel(
+                                      fullName: null,
+                                      email: emailController.text.trim(),
+                                      password: passwordController.text.trim(),
+                                    ),
+                                  );
+                                  if (authVM.error != null) {
+                                    print(authVM.error);
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text(
+                                          "Login failed: ${authVM.error}",
+                                        ),
+                                        backgroundColor: Colors.red,
+                                      ),
+                                    );
+                                  } else if (authVM.user != null &&
+                                      authVM.user!.token != null) {
+                                    print("✅ Token: ${authVM.user!.token}");
+                                    await storage.write(
+                                      key: 'token',
+                                      value: authVM.user!.token,
+                                    );
+                                    context.go('/home');
+                                  }
+                                } catch (e) {
+                                  print(e);
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text("Login failed: $e"),
+                                      backgroundColor: Colors.red,
+                                    ),
+                                  );
+                                }
+                              }
+                            : null,
+                        child: const Text(
+                          'Login',
+                          style: TextStyle(color: Colors.white, fontSize: 16),
+                        ),
+                      ),
                 const SizedBox(height: 16),
                 Row(
                   children: [
@@ -228,10 +243,11 @@ class _LoginPageState extends State<LoginPage> {
                             fontWeight: FontWeight.w500,
                             color: Color(0xFF1A1A1A),
                           ),
-                        ))
+                        ),
+                      ),
                     ],
                   ),
-                )
+                ),
               ],
             ),
           ),

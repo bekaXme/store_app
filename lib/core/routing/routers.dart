@@ -17,6 +17,8 @@ import 'package:store_app/features/home/pages/home_page.dart';
 import 'package:store_app/features/me/pages/me_page.dart';
 import 'package:store_app/features/notifications/pages/notifications_page.dart';
 import 'package:store_app/features/onboarding/pages/get_started_page.dart';
+import 'package:store_app/features/orders/pages/my_orders_page.dart';
+import 'package:store_app/features/orders/pages/track_order_page.dart';
 import 'package:store_app/features/savedProducts/bloc/saved_product_bloc.dart';
 import 'package:store_app/features/savedProducts/pages/saved_product_page.dart';
 import 'package:store_app/features/search_items/pages/search_page.dart';
@@ -83,9 +85,11 @@ final GoRouter router = GoRouter(
       builder: (context, state) =>
           SearchPage(repository: context.read<SearchRepository>()),
     ),
+    GoRoute(path: '/trackOrder', builder: (context, state) => TrackOrderPage()),
     GoRoute(path: '/myAccount', builder: (context, state) => MyAccountPage()),
     GoRoute(path: '/address', builder: (context, state) => AddressPage()),
     GoRoute(path: '/addAddress', builder: (context, state) => AddNewAddressPage()),
+    GoRoute(path: '/ordersPage', builder: (context, state) => MyOrdersPage()),
     ShellRoute(
       builder: (context, state, child) => ChangeNotifierProvider(
         create: (context) => ResetPasswordVM(context.read<AuthRepository>()),

@@ -26,6 +26,7 @@ import 'package:store_app/data/repositories/payment/payment_repository.dart';
 import 'package:store_app/features/card/managers/card_bloc.dart';
 
 import '../../data/repositories/orders/order_repository.dart';
+import '../../features/orders/managers/order_bloc.dart';
 
 final List<SingleChildWidget> dependencies = [
   Provider(create: (context) => const FlutterSecureStorage()),
@@ -75,6 +76,12 @@ final List<SingleChildWidget> dependencies = [
       context.read<CartRepository>(),
       context.read<OrderRepository>(),
     ),
+  ),
+
+  RepositoryProvider(create: (context) => OrderRepository(client: context.read<ApiClient>())),
+
+  BlocProvider(
+    create: (context) => OrderBloc(repository: context.read<OrderRepository>()),
   ),
 
   RepositoryProvider(
